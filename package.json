@@ -1,0 +1,18 @@
+{
+  "name": "wds-ops-portal",
+  "version": "1.0.0",
+  "description": "WDS Operations Portal with Google Drive, Sheets, and Telegram automation",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "googleapis": "^137.0.0",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}

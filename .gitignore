@@ -1,0 +1,11 @@
+# Secret environment variables (Service Account Keys, Tokens)
+.env
+*.json
+!package.json
+
+# Dependencies
+node_modules/
+
+# OS metadata
+.DS_Store
+Thumbs.db
