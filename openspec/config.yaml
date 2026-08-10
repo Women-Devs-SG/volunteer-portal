@@ -1,0 +1,59 @@
+schema: spec-driven
+
+context: |
+  Project: WDS Operations Portal (repo: volunteer-portal, org: Women-Devs-SG).
+  An internal single-page portal volunteers use to create an "event task": it
+  records the event, provisions a Google Drive folder from a template, and
+  announces it to Telegram.
+
+  Tech stack:
+    - Backend: Node.js (ESM, `"type": "module"`), Express 4, googleapis,
+      node-telegram-bot-api, dotenv. Entry point `server.js`, routes in
+      `api/create-task.js`.
+    - Frontend: zero-dependency vanilla JS + HTML in `public/`, served as static
+      files by Express. No build step, no bundler, no framework.
+    - Datastore: a Google Sheet (tab `Tasks`, columns A:I) via Sheets API v4.
+      There is no SQL database, no ORM, and no migration tooling.
+    - Shared helpers for the Fetch-API runtime live in `lib/*.mjs`.
+
+  Conventions:
+    - ESM `import` only, never `require`.
+    - Two-space indent, single quotes, semicolons.
+    - All configuration comes from environment variables (see `.env.example`).
+      Never hardcode IDs, tokens, or keys; never commit `.env`.
+    - Comments explain *why*, not *what*. Keep them sparse.
+    - There is no test framework wired up. `test-*.mjs` and `debug-google.mjs`
+      at the repo root are hand-run diagnostic scripts, not a suite.
+    - Frontend builds DOM nodes with `document.createElement` and `textContent`
+      rather than `innerHTML`, because task fields are operator-supplied strings
+      that round-trip through a spreadsheet.
+
+  Domain notes:
+    - "Task" means one event/project. Its id is `TASK-<epoch-millis>`.
+    - Google API failures are expected in normal operation (storage quota,
+      revoked sharing). Persisting the task to the Sheet is the only
+      must-succeed step; Drive and Telegram are best-effort side effects.
+    - The service account needs Editor access granted manually to the target
+      Sheet, Drive parent folder, and template doc — this is not automatable.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

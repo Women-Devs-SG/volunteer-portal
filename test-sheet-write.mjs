@@ -19,7 +19,8 @@ try {
   const res = await sheets.spreadsheets.values.append({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: 'Tasks!A:I',
-    valueInputOption: 'USER_ENTERED',
+    // Matches the production write path: values are stored as literal text.
+    valueInputOption: 'RAW',
     requestBody: { values: row },
   });
   console.log('APPEND_OK', res.data.updates?.updatedCells);

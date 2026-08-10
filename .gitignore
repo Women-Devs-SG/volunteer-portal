@@ -1,10 +1,19 @@
 # Secret environment variables (Service Account Keys, Tokens)
 .env
+.env.*
+!.env.example
+
+# Service account key files, but keep project manifests and the lockfile.
 *.json
 !package.json
+!package-lock.json
+!netlify/**/*.json
 
 # Dependencies
 node_modules/
+
+# Netlify build output
+.netlify/
 
 # OS metadata
 .DS_Store
