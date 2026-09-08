@@ -39,6 +39,13 @@ Scope them to **all deploy contexts**, or production only if you do not want
 deploy previews touching the live Sheet. Deploy previews get public URLs, so
 prefer scoping secrets to production only.
 
+> ⚠️ **Never set `DEMO_MODE` in the production context.** It switches the API over
+> to the fictional fixtures in `fixtures/tasks.demo.json` and drops the password
+> check, so both functions refuse every request with `503` if they find it set in
+> production. That is deliberate: showing volunteers fake data silently would be
+> worse than an outage. It is safe in a branch or deploy-preview context if you
+> ever want a shareable demo — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## 3. Deploy
 
 Connect the GitHub repo at <https://app.netlify.com/start>. `netlify.toml`

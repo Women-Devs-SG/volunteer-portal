@@ -1,4 +1,5 @@
 import { requirePassword } from '../../lib/auth.mjs';
+import { addDemoTask, demoDriveUrl, demoStatus } from '../../lib/demo.mjs';
 import { getGoogleClients } from '../../lib/google.mjs';
 import { notifyTaskCreated } from '../../lib/telegram.mjs';
 import { validateTaskInput } from '../../lib/validate.mjs';
@@ -7,8 +8,13 @@ import { json, methodNotAllowed, readJsonObject, serverError } from '../../lib/h
 export default async function handler(req) {
   if (req.method !== 'POST') return methodNotAllowed('POST');
 
-  const unauthorized = requirePassword(req);
-  if (unauthorized) return unauthorized;
+  const demo = demoStatus();
+  if (demo.refusal) return demo.refusal;
+
+  if (!demo.active) {
+    const unauthorized = requirePassword(req);
+    if (unauthorized) return unauthorized;
+  }
 
   const body = await readJsonObject(req);
   if (!body.ok) return json(400, { status: 'error', message: body.message });
@@ -22,6 +28,33 @@ export default async function handler(req) {
   const createdAt = new Date().toISOString();
   const targetFormUrl = formUrl || 'https://forms.google.com';
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(targetFormUrl)}`;
+
+  // Validation above has already run, so a contributor exercising the demo is
+  // exercising the real request contract. Only the side effects are replaced.
+  if (demo.active) {
+    const driveUrl = demoDriveUrl(taskId);
+
+    addDemoTask({
+      taskId,
+      taskName,
+      status: 'Pending',
+      driveUrl,
+      qrUrl: qrCodeUrl,
+      createdAt,
+      eventDate,
+      eventLocation,
+      eventOneLiner,
+    });
+
+    return json(200, {
+      status: 'success',
+      taskId,
+      driveUrl,
+      qrCodeUrl,
+      createdAt,
+      message: 'Demo mode: task stored in memory only. Nothing was written to Google or Telegram.',
+    });
+  }
 
   let sheets;
   let drive;
