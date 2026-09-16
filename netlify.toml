@@ -1,5 +1,6 @@
 [build]
-  publish = "public"
+  command = "npm run build"
+  publish = "dist"
   functions = "netlify/functions"
 
 [build.environment]
@@ -25,9 +26,8 @@
     Referrer-Policy = "no-referrer"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    # The portal loads no third-party scripts, fonts, or images. Inline styles
-    # are allowed because index.html carries its CSS in a <style> block.
-    Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
+    # Vite emits first-party hashed JavaScript and CSS assets into dist/.
+    Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
 
 # Task data is private; never let a proxy or the browser cache an API response.
 [[headers]]

@@ -7,13 +7,18 @@
 *.json
 !package.json
 !package-lock.json
+!tsconfig.json
 !netlify/**/*.json
 
 # Dependencies
 node_modules/
+.npm-cache/
 
 # Netlify build output
 .netlify/
+
+# Vite build output
+dist/
 
 # OS metadata
 .DS_Store

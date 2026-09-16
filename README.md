@@ -6,19 +6,19 @@ A lightweight, event-driven web application and operational database engine for 
 
 ## Technical Overview & Architecture
 
-The system utilizes an asynchronous **Node.js/Express** middleware layer that bridges a zero-dependency **Vanilla JavaScript/HTML5** frontend with a **Google Workspace** and **Telegram API** backend ecosystem. 
+The system uses a **React + TypeScript** browser frontend built with Vite and asynchronous **Netlify Functions** that integrate with **Google Workspace** and the **Telegram API**.
 
 Data persistence is handled by **Google Sheets** via the official Google Sheets API v4, eliminating proprietary database hosting overhead while keeping records directly accessible to administrative stakeholders.
 
 ```text
 ┌─────────────────────────┐
 │  Client Web Interface   │
-│ (HTML5 / Vanilla JS API)│
+│  (React + TypeScript)   │
 └────────────┬────────────┘
              │ HTTP POST /api/create-task
              ▼
 ┌─────────────────────────┐
-│ Node.js Express Server  │
+│  Netlify Functions API  │
 │  (Service Account Auth) │
 └──────┬──────┬──────┬────┘
        │      │      │
@@ -64,9 +64,14 @@ wds-ops-portal/
 │   ├── config.yaml           # Workflow schema and project context
 │   ├── specs/                # Current behaviour, per capability
 │   └── changes/              # Proposed work, per change
-└── public/
-    ├── index.html            # Event creation interface and dashboard UI
-    └── app.js                # Client-side HTTP requests and DOM manipulation
+├── src/
+│   ├── App.tsx               # Unlock, task form, and dashboard components
+│   ├── api.ts                # Typed API and session-password helpers
+│   ├── main.tsx              # React entry point
+│   ├── styles.css            # Portal styles
+│   └── types.ts              # Shared frontend data contracts
+├── index.html                # Vite HTML entry point
+└── tsconfig.json             # Strict TypeScript configuration
 ```
 
 ---
@@ -201,8 +206,8 @@ Retrieves logged task entries from the `Tasks` sheet tab.
 ## Diagnostic Scripts
 
 Three hand-run scripts sit at the repository root. They are not part of the test
-suite, nothing imports them, and Netlify never deploys them — only `public/` is
-published. Each one loads `.env`, so fill it in first.
+suite, nothing imports them, and Netlify never deploys them—the Vite-generated
+`dist/` directory is published. Each script loads `.env`, so fill it in first.
 
 | Script | What it does | Touches live data |
 | --- | --- | --- |

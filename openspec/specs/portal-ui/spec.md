@@ -2,21 +2,20 @@
 
 ## Purpose
 
-Defines the single-page operator interface: the unlock screen, the task creation
-form, and the dashboard of recorded tasks. It is deliberately dependency-free
-static HTML and JavaScript with no build step.
+Defines the React + TypeScript single-page operator interface: the unlock screen,
+the task creation form, and the dashboard of recorded tasks.
 
 ## Requirements
 
-### Requirement: Static Single-Page Delivery
+### Requirement: Built Single-Page Delivery
 
-The system SHALL serve the portal as static files from `public/`, requiring no
-build step, bundler, or frontend framework.
+The system SHALL build the React + TypeScript portal with Vite and serve the
+generated static files from `dist/`.
 
 #### Scenario: Operator opens the portal
 
 - **WHEN** an operator loads the site root
-- **THEN** `index.html` and `app.js` are served as static assets
+- **THEN** the generated HTML, JavaScript, and CSS are served as static assets
 - **AND** the page requests no third-party scripts or stylesheets
 
 #### Scenario: Portal is excluded from search engines
@@ -92,15 +91,14 @@ server's limits.
 
 ### Requirement: Task Dashboard Rendering
 
-The interface SHALL list recorded tasks newest-first as cards showing status,
+The interface SHALL list recorded tasks newest-first as React-rendered cards showing status,
 name, and any event date, location, description, and Drive link.
 
 #### Scenario: Tasks are rendered without markup injection
 
 - **WHEN** task fields are rendered
-- **THEN** each card is built with DOM element creation and text content rather
-  than HTML string interpolation, so spreadsheet values can never be interpreted
-  as markup
+- **THEN** task values are rendered through React text interpolation rather than
+  injected HTML, so spreadsheet values can never be interpreted as markup
 
 #### Scenario: Drive link is shown
 

@@ -1,8 +1,7 @@
 # Netlify Deployment Guide
 
-The portal is a static frontend in `public/` plus two Netlify Functions in
-`netlify/functions/`. There is no long-running server — Netlify does not run
-one, so the previous Express `server.js` has been replaced.
+The portal is a React + TypeScript frontend built into `dist/`, plus two Netlify
+Functions in `netlify/functions/`. There is no long-running server.
 
 | Path | Function | Method |
 | --- | --- | --- |
@@ -44,12 +43,13 @@ prefer scoping secrets to production only.
 Connect the GitHub repo at <https://app.netlify.com/start>. `netlify.toml`
 already sets everything:
 
-- publish directory: `public`
+- build command: `npm run build`
+- publish directory: `dist`
 - functions directory: `netlify/functions`
 - Node version: 22
 
-No build command is needed. Netlify installs dependencies and bundles the
-functions automatically.
+Netlify installs dependencies, runs the Vite build, and bundles the functions
+automatically.
 
 ## 4. Local development
 
@@ -60,9 +60,9 @@ cp .env.example .env         # then fill it in
 npm run dev                  # http://localhost:8888
 ```
 
-`netlify dev` serves `public/`, runs the functions, and applies the `/api/*`
-rewrites, so local behaviour matches production. Plain `npm start` no longer
-exists — the Express server it depended on has been removed.
+`netlify dev` runs the Vite frontend and functions together and applies the
+`/api/*` rewrites, so local behaviour matches production. Use
+`npm run dev:frontend` only when working on the UI without the local API.
 
 ## 5. Security notes
 

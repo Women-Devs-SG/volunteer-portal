@@ -8,12 +8,21 @@
   },
   "scripts": {
     "dev": "netlify dev",
+    "dev:frontend": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
     "audit": "npm audit --omit=dev"
   },
   "dependencies": {
-    "googleapis": "^174.0.1"
+    "googleapis": "^174.0.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
-    "dotenv": "^16.4.5"
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5"
   }
 }
