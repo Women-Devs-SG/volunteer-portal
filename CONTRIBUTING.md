@@ -25,6 +25,10 @@ or Telegram call is made. Tasks you create land in `wds-portal-demo-tasks.json` 
 your system temp directory — the two endpoints are separate functions and cannot
 share memory, so they share that file instead. Delete it to reset the demo.
 
+That file only works because both functions run on your machine. A demo deployed to
+a preview URL is read-only: it serves the fixtures and tells you so when you submit,
+rather than accepting a task that would never appear.
+
 Validation, status codes, and response shapes are identical to production, so demo
 mode is a faithful place to work. The three side effects — Sheet, Drive, Telegram —
 are the only things replaced.

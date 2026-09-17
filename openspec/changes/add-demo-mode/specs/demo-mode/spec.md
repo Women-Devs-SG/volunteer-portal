@@ -111,34 +111,53 @@ URL, so screenshots and demonstrations cannot leak community data.
 - **WHEN** a fixture or demo-created task exposes a `driveUrl`
 - **THEN** it is recognisably a placeholder rather than a real Drive link
 
-### Requirement: Demo Writes Go To A Scratch File
+### Requirement: Demo Writes Are Local Only
 
-The system SHALL store demo-created tasks in a scratch file outside the repository,
-readable by both endpoints, and SHALL NOT write them to any datastore.
+The system SHALL store demo-created tasks in a scratch file that both endpoints
+read, SHALL do so only where both run on one machine with one temp directory, and
+SHALL tell the caller plainly when it cannot rather than accepting a task that will
+never appear.
 
-#### Scenario: Task created in demo mode
+#### Scenario: Task created in a local demo
 
-- **WHEN** a task is submitted in demo mode
-- **THEN** it appears in the next listing, after the committed fixtures
-- **AND** no Sheet row, Drive folder, or Telegram message is created
+- **WHEN** a task is submitted in demo mode on a local dev server
+- **THEN** it is appended to the scratch file and appears in the next listing,
+  after the committed fixtures
+- **AND** the response says the task was saved to the local demo only
+
+#### Scenario: Task created in a deployed demo
+
+- **WHEN** a task is submitted in demo mode on a deployed site, such as a branch or
+  preview deploy
+- **THEN** the response reports that the demo is read-only and the task was not
+  added to the list
+- **AND** nothing is written anywhere
 
 #### Scenario: The two endpoints are separate functions
 
 - **WHEN** a task is created by one function and listed by the other
-- **THEN** both see the same scratch file, because process memory is not shared
-  between separate function invocations or between two deployed functions
+- **THEN** both read the same scratch file locally, because process memory is never
+  shared between separate function invocations
+- **AND** a deployed demo refuses the write instead, because each deployed function
+  has its own container and its own temp directory
 
 #### Scenario: Scratch file is missing or corrupt
 
 - **WHEN** the scratch file does not exist, or does not hold a JSON array
 - **THEN** the listing falls back to the committed fixtures alone rather than
-  failing, and deleting the file resets the demo
+  failing, and deleting the file resets the local demo
+
+#### Scenario: A reader runs while a write is in progress
+
+- **WHEN** the listing reads the scratch file while a task is being written
+- **THEN** it sees either the complete previous contents or the complete new
+  contents, never a partially written file
 
 #### Scenario: Scratch file cannot be written
 
 - **WHEN** the filesystem rejects the write
-- **THEN** the request still succeeds with its demo-only message, and the failure is
-  logged rather than surfaced as an error
+- **THEN** the request still succeeds, the response reports the demo as read-only,
+  and the failure is logged
 
 ### Requirement: Demo Mode Announces Itself
 

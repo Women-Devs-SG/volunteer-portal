@@ -34,7 +34,7 @@ export default async function handler(req) {
   if (demo.active) {
     const driveUrl = demoDriveUrl(taskId);
 
-    addDemoTask({
+    const stored = addDemoTask({
       taskId,
       taskName,
       status: 'Pending',
@@ -52,7 +52,9 @@ export default async function handler(req) {
       driveUrl,
       qrCodeUrl,
       createdAt,
-      message: 'Demo mode: task stored in memory only. Nothing was written to Google or Telegram.',
+      message: stored
+        ? 'Demo mode: saved to your local demo only. Nothing was written to Google or Telegram.'
+        : 'Demo mode: this shared demo is read-only, so the task was not added to the list. Nothing was written to Google or Telegram.',
     });
   }
 

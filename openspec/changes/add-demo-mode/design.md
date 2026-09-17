@@ -68,19 +68,32 @@ holds the same shape `GET /api/tasks` returns, so it doubles as a reference for 
 response contract and as a place to add a case (a task with no Drive URL, a long
 description) without touching code.
 
-**Demo writes go to a scratch file, not memory.** A module-level array was the first
-attempt and it does not work: `create-task` and `tasks` are separate functions —
-separate invocations under `netlify dev`, and two separate lambdas in production — so
-an array populated by one is invisible to the other. A created task returned `200`
-and then never appeared in the dashboard, which is worse than not supporting writes
-at all. Both functions now read and append to one JSON file in the OS temp
-directory, which is the simplest thing two isolated processes on one machine can
-share. Deleting the file resets the demo. A missing, corrupt, or unwritable file
-degrades to "fixtures only" and is logged, never raised.
+**Demo writes are local only, and say so.** Three attempts converged here. A
+module-level array fails because `create-task` and `tasks` are separate functions:
+an array populated by one is invisible to the other, so a created task returned
+`200` and never appeared. A shared file in the OS temp directory fixes that only
+where both functions run on one machine — true under `netlify dev`, false on a
+deployed site, where each function has its own container and its own `/tmp`, and
+container recycling would lose the file even for a single function. Since
+`DEMO_MODE` is explicitly allowed on branch and preview deploys, a file store alone
+would have reproduced the original bug exactly where it is hardest to notice.
 
-This was caught only by driving the running dev server over HTTP. A unit check that
-imports both handlers into one Node process shares a module instance and passes
-against the broken design, so the HTTP path is the one that counts here.
+So `addDemoTask` returns whether it actually stored anything, and the response says
+which happened: saved to your local demo, or this shared demo is read-only and the
+task was not added. Accepting a write and silently dropping it is the one outcome
+worth engineering against. The alternative — a real shared store such as Netlify
+Blobs — would make deployed demos writable, at the cost of a production dependency
+and an unbounded public write surface, for a feature whose main job is local
+onboarding.
+
+`NETLIFY_DEV` is the signal for "local". This was checked rather than assumed:
+a function under `netlify dev` sets `AWS_LAMBDA_FUNCTION_NAME` and
+`LAMBDA_TASK_ROOT` exactly as a deployed one does, so neither distinguishes them.
+
+Writes go to a temporary path and are renamed into place, so a concurrent listing
+sees either the whole old file or the whole new one — never a truncated file that
+would parse as empty and then be overwritten. Two simultaneous writers can still
+lose one task; for one person clicking a form that does not justify a lock file.
 
 ## Risks / Trade-offs
 

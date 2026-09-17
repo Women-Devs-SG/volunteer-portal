@@ -66,7 +66,7 @@ wds-ops-portal/
 ├── package.json              # Project dependencies and script definitions
 ├── lib/
 │   ├── auth.mjs              # Shared-password check (timing-safe, fails closed)
-│   ├── demo.mjs              # DEMO_MODE activation and in-memory task store
+│   ├── demo.mjs              # DEMO_MODE activation and demo task store
 │   ├── google.mjs            # Sheets and Drive service-account clients
 │   ├── http.mjs              # JSON response and body-parsing helpers
 │   ├── telegram.mjs          # Telegram sendMessage over fetch
@@ -158,7 +158,9 @@ from [`fixtures/tasks.demo.json`](fixtures/tasks.demo.json), and you can create 
 In demo mode nothing leaves your machine: no Google Sheet is read or written, no
 Drive folder is created, no Telegram message is sent. Tasks you create are appended
 to a scratch file in your system temp directory (`wds-portal-demo-tasks.json`) —
-delete it to reset the demo to just the fixtures. Everything else is the real thing —
+delete it to reset the demo to just the fixtures. Creating tasks works when you run
+the portal locally; a demo deployed to a preview URL is read-only and says so,
+because each deployed function has its own container and cannot share that file. Everything else is the real thing —
 the same validation rules, status codes, and response shapes — so it is a faithful
 place to work on a fix.
 

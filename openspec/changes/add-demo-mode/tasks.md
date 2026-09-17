@@ -16,6 +16,12 @@
       temp directory, so both functions see the same demo tasks
       — first built as a module-level array; that cannot work across two separate
       functions, found by driving the running dev server rather than by unit checks
+- [x] 2.5 Support writes only where both functions share a temp directory, and have
+      `addDemoTask` report whether it stored anything so the response can say which
+      — the file store alone still failed on a deployed demo, where each function
+      has its own container; caught in review, not by any test
+- [x] 2.6 Write to a temporary path and rename into place, so a concurrent listing
+      never reads a half-written file
 - [x] 2.4 Log a warning naming `DEMO_MODE` on every demo-mode request
 
 ## 3. Wire into the functions
