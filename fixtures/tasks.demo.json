@@ -1,0 +1,57 @@
+[
+  {
+    "taskId": "TASK-1750000000000",
+    "taskName": "Intro to Git & GitHub Workshop",
+    "status": "Pending",
+    "driveUrl": "https://drive.google.com/drive/folders/DEMO_FOLDER_INTRO_GIT",
+    "qrUrl": "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fexample.com%2Fdemo-form",
+    "createdAt": "2026-04-02T09:15:00.000Z",
+    "eventDate": "2026-05-14",
+    "eventLocation": "Demo Community Hall, Room 2",
+    "eventOneLiner": "A hands-on first session on branches, commits and pull requests."
+  },
+  {
+    "taskId": "TASK-1750100000000",
+    "taskName": "Career Switchers Coffee Chat",
+    "status": "Pending",
+    "driveUrl": "https://drive.google.com/drive/folders/DEMO_FOLDER_COFFEE_CHAT",
+    "qrUrl": "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fexample.com%2Fdemo-form",
+    "createdAt": "2026-04-11T02:40:00.000Z",
+    "eventDate": "2026-06-01",
+    "eventLocation": "Demo Cafe, Level 3",
+    "eventOneLiner": "An informal morning for people moving into tech from another field."
+  },
+  {
+    "taskId": "TASK-1750200000000",
+    "taskName": "Accessibility Clinic",
+    "status": "Pending",
+    "driveUrl": "",
+    "qrUrl": "",
+    "createdAt": "2026-04-18T11:05:00.000Z",
+    "eventDate": "2026-06-20",
+    "eventLocation": "Online",
+    "eventOneLiner": "Bring a page, leave with a fixed contrast ratio."
+  },
+  {
+    "taskId": "TASK-1750300000000",
+    "taskName": "Weekend Build Sprint",
+    "status": "Pending",
+    "driveUrl": "https://drive.google.com/drive/folders/DEMO_FOLDER_BUILD_SPRINT",
+    "qrUrl": "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fexample.com%2Fdemo-form",
+    "createdAt": "2026-04-25T07:30:00.000Z",
+    "eventDate": "2026-07-11",
+    "eventLocation": "Demo Innovation Centre, Studio B",
+    "eventOneLiner": "Two days to take one small idea from an empty folder to something a stranger can open in a browser, with mentors on hand for the parts that always go wrong."
+  },
+  {
+    "taskId": "TASK-1750400000000",
+    "taskName": "Mentorship Programme Kickoff",
+    "status": "Pending",
+    "driveUrl": "https://drive.google.com/drive/folders/DEMO_FOLDER_MENTORSHIP",
+    "qrUrl": "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fexample.com%2Fdemo-form",
+    "createdAt": "2026-05-02T13:20:00.000Z",
+    "eventDate": "2026-08-08",
+    "eventLocation": "Demo Library, Seminar Room",
+    "eventOneLiner": "Pairing mentors and mentees for the new cycle."
+  }
+]
