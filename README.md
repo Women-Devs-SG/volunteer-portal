@@ -2,11 +2,28 @@
 
 A lightweight, event-driven web application and operational database engine for managing event lifecycles, automated Google Drive infrastructure provisioning, dynamic folder generation, and instant Telegram notification dispatches.
 
+Built and used by [Women Devs SG](https://github.com/Women-Devs-SG) volunteers. When
+someone plans a community event, the portal records it, provisions a Google Drive
+folder from the house template, and announces it to the team's Telegram channel — so
+nobody has to do those three things by hand, in that order, every time.
+
+**The code is open source; the running instance is internal.** The live portal is
+password-gated and holds real event and volunteer records, so its URL is not
+published here. WDS volunteers can ask an organiser for access.
+
+**You do not need our credentials to run it.** `DEMO_MODE` serves fictional events
+from a committed fixture, so you can clone this repository and have a working portal
+in about a minute — see [Try it locally](#try-it-locally-no-credentials-needed).
+
 ---
 
 ## Technical Overview & Architecture
 
+<<<<<<< HEAD
 The system uses a **React + TypeScript** browser frontend built with Vite and asynchronous **Netlify Functions** that integrate with **Google Workspace** and the **Telegram API**.
+=======
+Two **Netlify Functions** bridge a zero-dependency **Vanilla JavaScript/HTML5** frontend with a **Google Workspace** and **Telegram API** backend ecosystem. There is no long-running server: each request is handled by a stateless function, and `public/` is served as static files.
+>>>>>>> origin
 
 Data persistence is handled by **Google Sheets** via the official Google Sheets API v4, eliminating proprietary database hosting overhead while keeping records directly accessible to administrative stakeholders.
 
@@ -18,8 +35,13 @@ Data persistence is handled by **Google Sheets** via the official Google Sheets 
              │ HTTP POST /api/create-task
              ▼
 ┌─────────────────────────┐
+<<<<<<< HEAD
 │  Netlify Functions API  │
 │  (Service Account Auth) │
+=======
+│   Netlify Functions     │
+│ (Password + SA Auth)    │
+>>>>>>> origin
 └──────┬──────┬──────┬────┘
        │      │      │
        │      │      └────────────────────────────────────────┐
@@ -53,6 +75,7 @@ wds-ops-portal/
 ├── package.json              # Project dependencies and script definitions
 ├── lib/
 │   ├── auth.mjs              # Shared-password check (timing-safe, fails closed)
+│   ├── demo.mjs              # DEMO_MODE activation and demo task store
 │   ├── google.mjs            # Sheets and Drive service-account clients
 │   ├── http.mjs              # JSON response and body-parsing helpers
 │   ├── telegram.mjs          # Telegram sendMessage over fetch
@@ -60,6 +83,8 @@ wds-ops-portal/
 ├── netlify/functions/
 │   ├── create-task.mjs       # POST /api/create-task
 │   └── tasks.mjs             # GET /api/tasks
+├── fixtures/
+│   └── tasks.demo.json       # Fictional events served in DEMO_MODE
 ├── openspec/                 # Specs and change proposals (see below)
 │   ├── config.yaml           # Workflow schema and project context
 │   ├── specs/                # Current behaviour, per capability
@@ -78,8 +103,12 @@ wds-ops-portal/
 
 ## Prerequisites
 
-* **Node.js:** `v18.x` or higher
+> Only the first two are needed for [demo mode](#try-it-locally-no-credentials-needed).
+> Everything below that is required only to run against real data.
+
+* **Node.js:** `v20` or higher (Netlify builds on v22)
 * **npm:** `v9.x` or higher
+* **Netlify CLI:** `npm install -g netlify-cli`
 * **Google Cloud Project:** Enabled **Google Sheets API** and **Google Drive API**
 * **Google Service Account:** Generated key file (`JSON`) with **Editor** permissions granted to:
   * Target Google Sheet
@@ -91,7 +120,8 @@ wds-ops-portal/
 
 ## Environment Configuration
 
-Create a `.env` file in the root directory. Populate it using the parameters specified below:
+Copy [`.env.example`](.env.example) to `.env` — it is the authoritative list and
+ships ready for demo mode. The full set of variables:
 
 ```env
 # Google Service Account Credentials
@@ -113,9 +143,43 @@ TELEGRAM_CHAT_ID="-1001234567890"
 # Shared portal password (minimum 12 characters).
 # The API refuses every request if this is unset or too short.
 PORTAL_PASSWORD="generate-a-long-random-value"
+
+# Demo mode: serve fictional fixtures, skip the password, call nothing external.
+# Set to 1 for local development without credentials. NEVER set it in the
+# Netlify production context — the API returns 503 to everything if you do.
+DEMO_MODE=0
 ```
 
 > ⚠️ **Strict Rule:** Never commit the `.env` file or raw JSON Service Account credentials to version control. Ensure `.gitignore` remains intact.
+
+---
+
+## Try It Locally (No Credentials Needed)
+
+```bash
+git clone https://github.com/Women-Devs-SG/volunteer-portal.git
+cd volunteer-portal
+npm install
+npm install -g netlify-cli    # once
+cp .env.example .env          # ships with DEMO_MODE=1 already set
+npm run dev                   # http://localhost:8888
+```
+
+Open the portal and type **any password** — demo mode has nothing behind the gate,
+so the unlock screen accepts whatever you enter. You will see five fictional events
+from [`fixtures/tasks.demo.json`](fixtures/tasks.demo.json), and you can create more.
+
+In demo mode nothing leaves your machine: no Google Sheet is read or written, no
+Drive folder is created, no Telegram message is sent. Tasks you create are appended
+to a scratch file in your system temp directory (`wds-portal-demo-tasks.json`) —
+delete it to reset the demo to just the fixtures. Creating tasks works when you run
+the portal locally; a demo deployed to a preview URL is read-only and says so,
+because each deployed function has its own container and cannot share that file. Everything else is the real thing —
+the same validation rules, status codes, and response shapes — so it is a faithful
+place to work on a fix.
+
+To run against real Google credentials instead, set `DEMO_MODE=0` in `.env` and fill
+in the rest, then follow the procedure below.
 
 ---
 
@@ -123,8 +187,8 @@ PORTAL_PASSWORD="generate-a-long-random-value"
 
 1. **Clone repository:**
    ```bash
-   git clone https://github.com/YOUR_ORGANIZATION/wds-ops-portal.git
-   cd wds-ops-portal
+   git clone https://github.com/Women-Devs-SG/volunteer-portal.git
+   cd volunteer-portal
    ```
 
 2. **Install node dependencies:**
@@ -269,8 +333,14 @@ prefix. Claude Code users get the workflow as slash commands: `/opsx:propose`,
 5. Once the work is merged and deployed, archive the change so its deltas fold into
    `openspec/specs/`: `/opsx:archive` or
    `npx @fission-ai/openspec@latest archive <change-name>`.
-6. PRs require a descriptive title, a reference to a tracked GitHub Issue, and code
-   review approval prior to merging into `main`.
+6. `main` is protected: every change goes through a pull request with a descriptive
+   title. Approvals are not mandatory, so a maintainer may merge their own PR after
+   review.
 
 > Fixes that change no requirements — refactors, tooling, docs — need no change
 > folder. Only spec-level behaviour goes through `openspec/changes/`.
+
+Full details, including the "never commit real data" rule and how to run in demo
+mode, are in **[CONTRIBUTING.md](CONTRIBUTING.md)**. Please also read the
+**[Code of Conduct](CODE_OF_CONDUCT.md)**, and report security problems privately as
+described in **[SECURITY.md](SECURITY.md)** rather than in a public issue.

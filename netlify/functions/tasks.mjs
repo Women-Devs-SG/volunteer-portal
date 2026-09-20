@@ -1,12 +1,20 @@
 import { requirePassword } from '../../lib/auth.mjs';
+import { demoStatus, listDemoTasks } from '../../lib/demo.mjs';
 import { getGoogleClients } from '../../lib/google.mjs';
 import { json, methodNotAllowed, serverError } from '../../lib/http.mjs';
 
 export default async function handler(req) {
   if (req.method !== 'GET') return methodNotAllowed('GET');
 
-  const unauthorized = requirePassword(req);
-  if (unauthorized) return unauthorized;
+  const demo = demoStatus();
+  if (demo.refusal) return demo.refusal;
+
+  if (!demo.active) {
+    const unauthorized = requirePassword(req);
+    if (unauthorized) return unauthorized;
+  }
+
+  if (demo.active) return json(200, { status: 'success', tasks: listDemoTasks() });
 
   let sheets;
   try {
