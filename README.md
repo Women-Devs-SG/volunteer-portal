@@ -19,13 +19,14 @@ in about a minute — see [Try it locally](#try-it-locally-no-credentials-needed
 
 ## Technical Overview & Architecture
 
-<<<<<<< HEAD
-The system uses a **React + TypeScript** browser frontend built with Vite and asynchronous **Netlify Functions** that integrate with **Google Workspace** and the **Telegram API**.
-=======
-Two **Netlify Functions** bridge a zero-dependency **Vanilla JavaScript/HTML5** frontend with a **Google Workspace** and **Telegram API** backend ecosystem. There is no long-running server: each request is handled by a stateless function, and `public/` is served as static files.
->>>>>>> origin
+The system uses a **React + TypeScript** browser frontend built with Vite and two
+asynchronous **Netlify Functions** that integrate with **Google Workspace** and the
+**Telegram API**. There is no long-running server: each API request is handled by a
+stateless function, and Vite builds the frontend into static files under `dist/`.
 
-Data persistence is handled by **Google Sheets** via the official Google Sheets API v4, eliminating proprietary database hosting overhead while keeping records directly accessible to administrative stakeholders.
+In normal operation, data persistence is handled by **Google Sheets** through the
+official Google Sheets API v4. In local demo mode, the same API contracts operate on
+fictional fixtures and a temporary local store without contacting Google or Telegram.
 
 ```text
 ┌─────────────────────────┐
@@ -35,13 +36,8 @@ Data persistence is handled by **Google Sheets** via the official Google Sheets 
              │ HTTP POST /api/create-task
              ▼
 ┌─────────────────────────┐
-<<<<<<< HEAD
 │  Netlify Functions API  │
-│  (Service Account Auth) │
-=======
-│   Netlify Functions     │
 │ (Password + SA Auth)    │
->>>>>>> origin
 └──────┬──────┬──────┬────┘
        │      │      │
        │      │      └────────────────────────────────────────┐
@@ -62,6 +58,7 @@ Data persistence is handled by **Google Sheets** via the official Google Sheets 
 3. **Database Logging:** Appends structured event metadata (`Task_ID`, `Task_Name`, `Event_Date`, `Location`, `Description`, `Status`, `Drive_URL`, `Form_QR_URL`, `Created_At`) to the Google Sheet.
 4. **QR Code Generation:** Constructs inline dynamic QR codes for optional feedback and registration forms.
 5. **Real-time Event Broadcasting:** Dispatches formatted HTML notification payloads to designated Telegram channels or groups, with all user-supplied values escaped.
+6. **Credential-free Demo Mode:** Serves fictional events and accepts local-only demo tasks without calling Google Workspace or Telegram.
 
 ---
 
@@ -147,7 +144,7 @@ PORTAL_PASSWORD="generate-a-long-random-value"
 # Demo mode: serve fictional fixtures, skip the password, call nothing external.
 # Set to 1 for local development without credentials. NEVER set it in the
 # Netlify production context — the API returns 503 to everything if you do.
-DEMO_MODE=0
+DEMO_MODE=1
 ```
 
 > ⚠️ **Strict Rule:** Never commit the `.env` file or raw JSON Service Account credentials to version control. Ensure `.gitignore` remains intact.
@@ -183,7 +180,7 @@ in the rest, then follow the procedure below.
 
 ---
 
-## Local Setup & Execution Procedure
+## Local Setup With Real Integrations
 
 1. **Clone repository:**
    ```bash
@@ -196,8 +193,9 @@ in the rest, then follow the procedure below.
    npm install
    ```
 
-3. **Validate configuration:**
-   Ensure `.env` exists and contains valid IDs and RSA keys.
+3. **Configure the real integration:**
+   Set `DEMO_MODE=0`, then ensure `.env` contains the required Google IDs, RSA
+   key, portal password, and any optional Telegram values.
 
 4. **Launch application:**
    ```bash
@@ -214,9 +212,12 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for deploying to Netlify.
 
 ## API Specifications
 
-Both endpoints require an `X-Portal-Password` header matching `PORTAL_PASSWORD`.
-Requests without it return `401`; if the variable is unset or under 12
-characters the API returns `503` and refuses all traffic.
+In normal operation, both endpoints require an `X-Portal-Password` header matching
+`PORTAL_PASSWORD`. Requests without it return `401`; if the variable is unset or
+under 12 characters the API returns `503` and refuses all traffic. Local demo mode
+does not require real credentials or make external calls. Demo mode is deliberately
+refused in Netlify's production context so fictional data cannot be presented as
+live volunteer data.
 
 ### `POST /api/create-task`
 Executes full automation sequence (Drive creation, template copy, GSheet log, Telegram notification).
@@ -226,8 +227,8 @@ Executes full automation sequence (Drive creation, template copy, GSheet log, Te
   {
     "taskName": "WDS Tech Workshop 2026",
     "eventDate": "2026-09-15",
-    "location": "Hall B",
-    "description": "Hands-on tech workshop focusing on developer tooling.",
+    "eventLocation": "Hall B",
+    "eventOneLiner": "Hands-on tech workshop focusing on developer tooling.",
     "formUrl": "https://forms.google.com/sample"
   }
   ```
@@ -254,8 +255,8 @@ Retrieves logged task entries from the `Tasks` sheet tab.
         "taskId": "TASK-1772421389000",
         "taskName": "WDS Tech Workshop 2026",
         "eventDate": "2026-09-15",
-        "location": "Hall B",
-        "description": "Hands-on tech workshop focusing on developer tooling.",
+        "eventLocation": "Hall B",
+        "eventOneLiner": "Hands-on tech workshop focusing on developer tooling.",
         "status": "Pending",
         "driveUrl": "https://drive.google.com/...",
         "qrUrl": "https://api.qrserver.com/...",
