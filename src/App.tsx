@@ -1,9 +1,15 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { clearPassword, createTask, getPassword, getTasks, setPassword } from './api';
 import type { Task, TaskInput } from './types';
 
 type View = 'checking' | 'locked' | 'portal';
 type Status = { kind: 'success' | 'error'; message: string } | null;
+type LoadTasksResult =
+  | { kind: 'success' }
+  | { kind: 'unauthorized'; message: string }
+  | { kind: 'server-error'; message: string }
+  | { kind: 'network-error'; message: string };
 
 const emptyInput: TaskInput = {
   taskName: '',
@@ -30,50 +36,57 @@ export default function App() {
     setView('locked');
   }, []);
 
-  const loadTasks = useCallback(async (): Promise<boolean> => {
+  const loadTasks = useCallback(async (passwordOverride?: string): Promise<LoadTasksResult> => {
     setListMessage('Loading tasks…');
     try {
-      const { response, data } = await getTasks();
+      const { response, data } = await getTasks(passwordOverride);
       if (response.status === 401) {
-        lock('Incorrect password.');
-        return false;
+        setTasks([]);
+        setListMessage('');
+        return { kind: 'unauthorized', message: 'Incorrect password.' };
       }
       if (!response.ok || data?.status !== 'success') {
+        const message = data?.message ?? 'Error loading task database.';
         setTasks([]);
-        setListMessage(data?.message ?? 'Error loading task database.');
-        return false;
+        setListMessage(message);
+        return { kind: 'server-error', message };
       }
       const newestFirst = [...(data.tasks ?? [])].reverse();
       setTasks(newestFirst);
       setListMessage(newestFirst.length ? '' : 'No tasks created yet.');
-      return true;
+      return { kind: 'success' };
     } catch {
+      const message = 'Could not reach the portal. Check your connection and try again.';
       setTasks([]);
-      setListMessage('Error loading task database.');
-      return false;
+      setListMessage(message);
+      return { kind: 'network-error', message };
     }
-  }, [lock]);
+  }, []);
 
   useEffect(() => {
     if (!getPassword()) {
       setView('locked');
       return;
     }
-    void loadTasks().then((ok) => {
-      if (ok) setView('portal');
-      else if (getPassword()) {
-        setGateError('Could not reach the portal. Check your connection and try again.');
-        setView('locked');
+    void loadTasks(getPassword()).then((result) => {
+      if (result.kind === 'success') {
+        setView('portal');
+      } else {
+        lock(result.message);
       }
     });
-  }, [loadTasks]);
+  }, [loadTasks, lock]);
 
   async function handleUnlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setPassword(password);
     setGateError('');
-    if (await loadTasks()) setView('portal');
-    else if (getPassword()) setGateError('Could not reach the portal. Check your connection and try again.');
+    const result = await loadTasks(password);
+    if (result.kind === 'success') {
+      setPassword(password);
+      setView('portal');
+    } else {
+      lock(result.message);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -95,7 +108,10 @@ export default function App() {
       if (response.ok && data?.status === 'success') {
         setStatus({ kind: 'success', message: `✅ ${data.message ?? 'Task created.'}` });
         setInput(emptyInput);
-        await loadTasks();
+        const refreshResult = await loadTasks();
+        if (refreshResult.kind === 'unauthorized') {
+          lock('Session expired. Enter the portal password again.');
+        }
       } else {
         setStatus({ kind: 'error', message: `❌ ${data?.message ?? 'Failed to execute automation.'}` });
       }

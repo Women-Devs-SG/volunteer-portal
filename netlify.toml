@@ -6,6 +6,12 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[dev]
+  command = "vite"
+  targetPort = 5173
+  port = 8888
+  autoLaunch = false
+
 # Pretty API paths -> Netlify Functions. status 200 rewrites (not redirects),
 # so the browser keeps calling /api/* and everything stays same-origin.
 [[redirects]]
@@ -27,7 +33,10 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
     # Vite emits first-party hashed JavaScript and CSS assets into dist/.
-    Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
+    # The hash permits only Vite React's exact Fast Refresh preamble in local
+    # development. Production emits external hashed assets and needs no inline
+    # script; unsafe-inline remains intentionally disabled.
+    Content-Security-Policy = "default-src 'none'; script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk='; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
 
 # Task data is private; never let a proxy or the browser cache an API response.
 [[headers]]
