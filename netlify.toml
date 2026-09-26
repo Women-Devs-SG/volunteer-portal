@@ -7,9 +7,10 @@
   NODE_VERSION = "22"
 
 [dev]
-  command = "vite"
+  command = "vite --configLoader runner"
   targetPort = 5173
   port = 8888
+  publish = "dev-static"
   autoLaunch = false
 
 # Pretty API paths -> Netlify Functions. status 200 rewrites (not redirects),
@@ -24,19 +25,9 @@
   to = "/.netlify/functions/tasks"
   status = 200
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "no-referrer"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    # Vite emits first-party hashed JavaScript and CSS assets into dist/.
-    # The hash permits only Vite React's exact Fast Refresh preamble in local
-    # development. Production emits external hashed assets and needs no inline
-    # script; unsafe-inline remains intentionally disabled.
-    Content-Security-Policy = "default-src 'none'; script-src 'self' 'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk='; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
+# Production page security headers live in static/_headers. Vite copies that
+# file into dist for builds but does not expose it through Netlify Dev, where
+# its CSP would block the React Fast Refresh preamble.
 
 # Task data is private; never let a proxy or the browser cache an API response.
 [[headers]]

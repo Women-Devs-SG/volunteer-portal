@@ -71,8 +71,8 @@ npm run dev                  # http://localhost:8888
 ```
 
 `netlify dev` runs the Vite frontend and functions together and applies the
-`/api/*` rewrites, so local behaviour matches production. Use
-`npm run dev:frontend` only when working on the UI without the local API.
+`/api/*` rewrites, so local behaviour matches production. Always use
+`npm run dev`; the frontend-only Vite server cannot reach the local API.
 
 ## 5. Security notes
 
