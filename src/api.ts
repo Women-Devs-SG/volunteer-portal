@@ -15,21 +15,32 @@ const headers = (password: string, extra?: HeadersInit): HeadersInit => ({
 async function parseJson<T>(response: Response): Promise<T | undefined> {
   try {
     return (await response.json()) as T;
-  } catch {
+  } catch (error) {
+    console.error(`Failed to parse API response (${response.status} ${response.url}):`, error);
     return undefined;
   }
 }
 
 export async function getTasks(password = getPassword()): Promise<{ response: Response; data?: TasksResponse }> {
-  const response = await fetch(`${API_BASE_URL}/tasks`, { headers: headers(password) });
-  return { response, data: await parseJson<TasksResponse>(response) };
+  try {
+    const response = await fetch(`${API_BASE_URL}/tasks`, { headers: headers(password) });
+    return { response, data: await parseJson<TasksResponse>(response) };
+  } catch (error) {
+    console.error('Failed to load tasks:', error);
+    throw error;
+  }
 }
 
 export async function createTask(input: TaskInput): Promise<{ response: Response; data?: ApiResponse }> {
-  const response = await fetch(`${API_BASE_URL}/create-task`, {
-    method: 'POST',
-    headers: headers(getPassword(), { 'Content-Type': 'application/json' }),
-    body: JSON.stringify(input),
-  });
-  return { response, data: await parseJson<ApiResponse>(response) };
+  try {
+    const response = await fetch(`${API_BASE_URL}/create-task`, {
+      method: 'POST',
+      headers: headers(getPassword(), { 'Content-Type': 'application/json' }),
+      body: JSON.stringify(input),
+    });
+    return { response, data: await parseJson<ApiResponse>(response) };
+  } catch (error) {
+    console.error('Failed to create task:', error);
+    throw error;
+  }
 }

@@ -36,6 +36,11 @@ export default function App() {
     setView('locked');
   }, []);
 
+  const showGateError = useCallback((message: string) => {
+    setGateError(message);
+    setView('locked');
+  }, []);
+
   const loadTasks = useCallback(async (passwordOverride?: string): Promise<LoadTasksResult> => {
     setListMessage('Loading tasks…');
     try {
@@ -71,11 +76,13 @@ export default function App() {
     void loadTasks(getPassword()).then((result) => {
       if (result.kind === 'success') {
         setView('portal');
-      } else {
+      } else if (result.kind === 'unauthorized') {
         lock(result.message);
+      } else {
+        showGateError(result.message);
       }
     });
-  }, [loadTasks, lock]);
+  }, [loadTasks, lock, showGateError]);
 
   async function handleUnlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -84,8 +91,10 @@ export default function App() {
     if (result.kind === 'success') {
       setPassword(password);
       setView('portal');
-    } else {
+    } else if (result.kind === 'unauthorized') {
       lock(result.message);
+    } else {
+      showGateError(result.message);
     }
   }
 
