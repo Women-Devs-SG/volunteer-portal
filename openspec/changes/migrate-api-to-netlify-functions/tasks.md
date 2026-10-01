@@ -93,8 +93,8 @@ instead of the expected status. 5.6–5.10 need live credentials and a browser.
       steps, and the `PORTAL_PASSWORD` requirement
 - [x] 6.3 Document password rotation — change the Netlify variable, redeploy, tell
       the team
-- [x] 6.4 Note in `README.md` that `debug-google.mjs`, `test-create-task.mjs`, and
-      `test-sheet-write.mjs` are hand-run diagnostics, and check whether they still
+- [x] 6.4 Note in `README.md` that the scripts in `scripts/diagnostics/` are
+      hand-run diagnostics, and check whether they still
       work against the new layout
       — `test-create-task.mjs` was broken (port 3000, no password header, undeclared
       `node-fetch`) and has been repaired; `test-sheet-write.mjs` moved to `RAW`

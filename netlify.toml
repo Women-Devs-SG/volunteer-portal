@@ -1,9 +1,17 @@
 [build]
-  publish = "public"
+  command = "npm run build"
+  publish = "dist"
   functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "22"
+
+[dev]
+  command = "vite --configLoader runner"
+  targetPort = 5173
+  port = 8888
+  publish = "dev-static"
+  autoLaunch = false
 
 # Pretty API paths -> Netlify Functions. status 200 rewrites (not redirects),
 # so the browser keeps calling /api/* and everything stays same-origin.
@@ -17,17 +25,14 @@
   to = "/.netlify/functions/tasks"
   status = 200
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "no-referrer"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    # The portal loads no third-party scripts, fonts, or images. Inline styles
-    # are allowed because index.html carries its CSS in a <style> block.
-    Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
+[[redirects]]
+   from = "/*"
+   to = "/index.html"
+   status = 200
+
+# Production page security headers live in static/_headers and are copied into
+# dist during builds. Netlify Dev also applies them, so vite.config.ts omits the
+# inline React Fast Refresh preamble while serving locally.
 
 # Task data is private; never let a proxy or the browser cache an API response.
 [[headers]]

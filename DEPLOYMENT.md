@@ -1,8 +1,7 @@
 # Netlify Deployment Guide
 
-The portal is a static frontend in `public/` plus two Netlify Functions in
-`netlify/functions/`. There is no long-running server — Netlify does not run
-one, so the previous Express `server.js` has been replaced.
+The portal is a React + TypeScript frontend built into `dist/`, plus two Netlify
+Functions in `netlify/functions/`. There is no long-running server.
 
 | Path | Function | Method |
 | --- | --- | --- |
@@ -17,8 +16,8 @@ Both require the shared portal password in an `X-Portal-Password` header.
 node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
 ```
 
-Must be at least 12 characters. The API returns 503 to every request if it is
-unset or shorter, so the portal can never accidentally run unprotected.
+The API returns 503 to every request if it is unset or invalid, so the portal
+can never accidentally run unprotected.
 
 ## 2. Set environment variables in Netlify
 
@@ -54,25 +53,25 @@ prefer scoping secrets to production only.
 Connect the GitHub repo at <https://app.netlify.com/start>. `netlify.toml`
 already sets everything:
 
-- publish directory: `public`
+- build command: `npm run build`
+- publish directory: `dist`
 - functions directory: `netlify/functions`
 - Node version: 22
 
-No build command is needed. Netlify installs dependencies and bundles the
-functions automatically.
+Netlify installs dependencies, runs the Vite build, and bundles the functions
+automatically.
 
 ## 4. Local development
 
 ```powershell
 npm install
-npm install -g netlify-cli   # once
 cp .env.example .env         # then fill it in
 npm run dev                  # http://localhost:8888
 ```
 
-`netlify dev` serves `public/`, runs the functions, and applies the `/api/*`
-rewrites, so local behaviour matches production. Plain `npm start` no longer
-exists — the Express server it depended on has been removed.
+`netlify dev` runs the Vite frontend and functions together and applies the
+`/api/*` rewrites, so local behaviour matches production. Always use
+`npm run dev`; the frontend-only Vite server cannot reach the local API.
 
 ## 5. Security notes
 

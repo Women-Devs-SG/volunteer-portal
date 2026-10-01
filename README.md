@@ -19,19 +19,25 @@ in about a minute — see [Try it locally](#try-it-locally-no-credentials-needed
 
 ## Technical Overview & Architecture
 
-Two **Netlify Functions** bridge a zero-dependency **Vanilla JavaScript/HTML5** frontend with a **Google Workspace** and **Telegram API** backend ecosystem. There is no long-running server: each request is handled by a stateless function, and `public/` is served as static files.
+The system uses a **React + TypeScript** browser frontend built with Vite and styled
+with **Tailwind CSS v4**. Two asynchronous **Netlify Functions** integrate with
+**Google Workspace** and the **Telegram API**. There is no long-running server: each
+API request is handled by a stateless function, and Vite builds the frontend into
+static files under `dist/`.
 
-Data persistence is handled by **Google Sheets** via the official Google Sheets API v4, eliminating proprietary database hosting overhead while keeping records directly accessible to administrative stakeholders.
+In normal operation, data persistence is handled by **Google Sheets** through the
+official Google Sheets API v4. In local demo mode, the same API contracts operate on
+fictional fixtures and a temporary local store without contacting Google or Telegram.
 
 ```text
 ┌─────────────────────────┐
 │  Client Web Interface   │
-│ (HTML5 / Vanilla JS API)│
+│  (React + TypeScript)   │
 └────────────┬────────────┘
              │ HTTP POST /api/create-task
              ▼
 ┌─────────────────────────┐
-│   Netlify Functions     │
+│  Netlify Functions API  │
 │ (Password + SA Auth)    │
 └──────┬──────┬──────┬────┘
        │      │      │
@@ -53,6 +59,7 @@ Data persistence is handled by **Google Sheets** via the official Google Sheets 
 3. **Database Logging:** Appends structured event metadata (`Task_ID`, `Task_Name`, `Event_Date`, `Location`, `Description`, `Status`, `Drive_URL`, `Form_QR_URL`, `Created_At`) to the Google Sheet.
 4. **QR Code Generation:** Constructs inline dynamic QR codes for optional feedback and registration forms.
 5. **Real-time Event Broadcasting:** Dispatches formatted HTML notification payloads to designated Telegram channels or groups, with all user-supplied values escaped.
+6. **Credential-free Demo Mode:** Serves fictional events and accepts local-only demo tasks without calling Google Workspace or Telegram.
 
 ---
 
@@ -64,6 +71,7 @@ wds-ops-portal/
 ├── .gitignore                # Git exclusion rules (Enforces zero credential leak)
 ├── netlify.toml              # Netlify build, /api/* rewrites, and security headers
 ├── package.json              # Project dependencies and script definitions
+├── vite.config.ts            # React and Tailwind Vite plugins
 ├── lib/
 │   ├── auth.mjs              # Shared-password check (timing-safe, fails closed)
 │   ├── demo.mjs              # DEMO_MODE activation and demo task store
@@ -80,10 +88,27 @@ wds-ops-portal/
 │   ├── config.yaml           # Workflow schema and project context
 │   ├── specs/                # Current behaviour, per capability
 │   └── changes/              # Proposed work, per change
-└── public/
-    ├── index.html            # Event creation interface and dashboard UI
-    └── app.js                # Client-side HTTP requests and DOM manipulation
+├── src/
+│   ├── App.tsx               # Routes, unlock flow, and task dashboard
+│   ├── api.ts                # Typed API and session-password helpers
+│   ├── components/
+│   │   └── TaskCard.tsx       # Reusable task summary
+│   ├── main.tsx              # React entry point
+│   ├── pages/
+│   │   └── TaskCreatePage.tsx # Event-task creation route
+│   ├── styles.css            # Tailwind entry point and global base styles
+│   └── types.ts              # Shared frontend data contracts
+├── scripts/
+│   └── diagnostics/          # Hand-run integration diagnostics
+│       ├── debug-google.mjs
+│       ├── test-create-task.mjs
+│       └── test-sheet-write.mjs
+├── index.html                # Vite HTML entry point
+└── tsconfig.json             # Strict TypeScript configuration
 ```
+
+Portal components use Tailwind utility classes in their JSX. Global styles and the
+Tailwind theme live in `src/styles.css`; Vite loads Tailwind through its plugin.
 
 ---
 
@@ -94,7 +119,7 @@ wds-ops-portal/
 
 * **Node.js:** `v20` or higher (Netlify builds on v22)
 * **npm:** `v9.x` or higher
-* **Netlify CLI:** `npm install -g netlify-cli`
+* **Netlify CLI:** Installed locally with `npm install` from the project dependencies.
 * **Google Cloud Project:** Enabled **Google Sheets API** and **Google Drive API**
 * **Google Service Account:** Generated key file (`JSON`) with **Editor** permissions granted to:
   * Target Google Sheet
@@ -126,14 +151,13 @@ WDS_INTRO_DOC_ID="1XyZ987654321_ABCdefGHIjklmnOPQRstUVwx"
 TELEGRAM_BOT_TOKEN="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ-1234567"
 TELEGRAM_CHAT_ID="-1001234567890"
 
-# Shared portal password (minimum 12 characters).
-# The API refuses every request if this is unset or too short.
+# Shared portal password for real integrations.
 PORTAL_PASSWORD="generate-a-long-random-value"
 
 # Demo mode: serve fictional fixtures, skip the password, call nothing external.
 # Set to 1 for local development without credentials. NEVER set it in the
 # Netlify production context — the API returns 503 to everything if you do.
-DEMO_MODE=0
+DEMO_MODE=1
 ```
 
 > ⚠️ **Strict Rule:** Never commit the `.env` file or raw JSON Service Account credentials to version control. Ensure `.gitignore` remains intact.
@@ -146,7 +170,6 @@ DEMO_MODE=0
 git clone https://github.com/Women-Devs-SG/volunteer-portal.git
 cd volunteer-portal
 npm install
-npm install -g netlify-cli    # once
 cp .env.example .env          # ships with DEMO_MODE=1 already set
 npm run dev                   # http://localhost:8888
 ```
@@ -169,7 +192,7 @@ in the rest, then follow the procedure below.
 
 ---
 
-## Local Setup & Execution Procedure
+## Local Setup With Real Integrations
 
 1. **Clone repository:**
    ```bash
@@ -182,12 +205,12 @@ in the rest, then follow the procedure below.
    npm install
    ```
 
-3. **Validate configuration:**
-   Ensure `.env` exists and contains valid IDs and RSA keys.
+3. **Configure the real integration:**
+   Set `DEMO_MODE=0`, then ensure `.env` contains the required Google IDs, RSA
+   key, portal password, and any optional Telegram values.
 
 4. **Launch application:**
    ```bash
-   npm install -g netlify-cli   # once
    npm run dev
    ```
 
@@ -200,9 +223,12 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for deploying to Netlify.
 
 ## API Specifications
 
-Both endpoints require an `X-Portal-Password` header matching `PORTAL_PASSWORD`.
-Requests without it return `401`; if the variable is unset or under 12
-characters the API returns `503` and refuses all traffic.
+In normal operation, both endpoints require an `X-Portal-Password` header matching
+`PORTAL_PASSWORD`. Requests without it return `401`. If `PORTAL_PASSWORD` is missing
+or invalid, the API returns `503` and refuses all traffic. Local demo mode does not
+require real credentials or make external calls. Demo mode is deliberately refused
+in Netlify's production context so fictional data cannot be presented as live
+volunteer data.
 
 ### `POST /api/create-task`
 Executes full automation sequence (Drive creation, template copy, GSheet log, Telegram notification).
@@ -212,8 +238,8 @@ Executes full automation sequence (Drive creation, template copy, GSheet log, Te
   {
     "taskName": "WDS Tech Workshop 2026",
     "eventDate": "2026-09-15",
-    "location": "Hall B",
-    "description": "Hands-on tech workshop focusing on developer tooling.",
+    "eventLocation": "Hall B",
+    "eventOneLiner": "Hands-on tech workshop focusing on developer tooling.",
     "formUrl": "https://forms.google.com/sample"
   }
   ```
@@ -240,8 +266,8 @@ Retrieves logged task entries from the `Tasks` sheet tab.
         "taskId": "TASK-1772421389000",
         "taskName": "WDS Tech Workshop 2026",
         "eventDate": "2026-09-15",
-        "location": "Hall B",
-        "description": "Hands-on tech workshop focusing on developer tooling.",
+        "eventLocation": "Hall B",
+        "eventOneLiner": "Hands-on tech workshop focusing on developer tooling.",
         "status": "Pending",
         "driveUrl": "https://drive.google.com/...",
         "qrUrl": "https://api.qrserver.com/...",
@@ -255,17 +281,17 @@ Retrieves logged task entries from the `Tasks` sheet tab.
 
 ## Diagnostic Scripts
 
-Three hand-run scripts sit at the repository root. They are not part of the test
-suite, nothing imports them, and Netlify never deploys them — only `public/` is
-published. Each one loads `.env`, so fill it in first.
+Three hand-run scripts live in `scripts/diagnostics/`. They are not part of the test
+suite, nothing imports them, and Netlify never deploys them—the Vite-generated
+`dist/` directory is published. Each script loads `.env`, so fill it in first.
 
 | Script | What it does | Touches live data |
 | --- | --- | --- |
-| `node debug-google.mjs` | Checks the service account can reach `GOOGLE_SHEET_ID` and `GOOGLE_DRIVE_PARENT_FOLDER_ID`. Read-only. | No |
-| `node test-sheet-write.mjs` | Appends one literal `TEST`/`DEBUG` row to the `Tasks` tab. | **Yes** — writes a row you must delete by hand |
-| `node test-create-task.mjs` | Posts a task through a running `npm run dev` server, end to end. | **Yes** — creates a Drive folder, a Sheet row, and a Telegram message |
+| `node scripts/diagnostics/debug-google.mjs` | Checks the service account can reach `GOOGLE_SHEET_ID` and `GOOGLE_DRIVE_PARENT_FOLDER_ID`. Read-only. | No |
+| `node scripts/diagnostics/test-sheet-write.mjs` | Appends one literal `TEST`/`DEBUG` row to the `Tasks` tab. | **Yes** — writes a row you must delete by hand |
+| `node scripts/diagnostics/test-create-task.mjs` | Posts a task through a running `npm run dev` server, end to end. | **Yes** in real mode — creates a Drive folder, a Sheet row, and a Telegram message |
 
-`test-create-task.mjs` needs `npm run dev` running in another terminal. It reads
+`scripts/diagnostics/test-create-task.mjs` needs `npm run dev` running in another terminal. It reads
 `PORTAL_PASSWORD` from `.env` and sends it as `X-Portal-Password`; without it the
 API answers `401`. Override the target with `PORTAL_URL` to point at a deployed
 site instead of `http://localhost:8888`.

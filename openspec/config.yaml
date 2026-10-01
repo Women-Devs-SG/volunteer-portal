@@ -2,19 +2,19 @@ schema: spec-driven
 
 context: |
   Project: WDS Operations Portal (repo: volunteer-portal, org: Women-Devs-SG).
-  An internal single-page portal volunteers use to create an "event task": it
-  records the event, provisions a Google Drive folder from a template, and
-  announces it to Telegram.
+  An internal portal volunteers use to record events, provision a Google Drive
+  folder from a template, and announce events to Telegram. The current create-event
+  UI uses a legacy task-named API and Google Sheet schema; it does not create
+  volunteer work items associated with an event.
 
   Tech stack:
-    - Backend: Node.js (ESM, `"type": "module"`), Express 4, googleapis,
-      node-telegram-bot-api, dotenv. Entry point `server.js`, routes in
-      `api/create-task.js`.
-    - Frontend: zero-dependency vanilla JS + HTML in `public/`, served as static
-      files by Express. No build step, no bundler, no framework.
+    - Backend: Node.js (ESM, `"type": "module"`) on Netlify Functions, using
+      googleapis, dotenv, and Telegram's HTTP API. Functions live in
+      `netlify/functions/`; shared helpers live in `lib/`.
+    - Frontend: React + TypeScript, built with Vite and styled with Tailwind CSS
+      v4. Application source lives in `src/` and production assets build to `dist/`.
     - Datastore: a Google Sheet (tab `Tasks`, columns A:I) via Sheets API v4.
-      There is no SQL database, no ORM, and no migration tooling.
-    - Shared helpers for the Fetch-API runtime live in `lib/*.mjs`.
+      Local demo mode uses fictional fixtures and a temporary local task store.
 
   Conventions:
     - ESM `import` only, never `require`.
@@ -22,14 +22,16 @@ context: |
     - All configuration comes from environment variables (see `.env.example`).
       Never hardcode IDs, tokens, or keys; never commit `.env`.
     - Comments explain *why*, not *what*. Keep them sparse.
-    - There is no test framework wired up. `test-*.mjs` and `debug-google.mjs`
-      at the repo root are hand-run diagnostic scripts, not a suite.
-    - Frontend builds DOM nodes with `document.createElement` and `textContent`
-      rather than `innerHTML`, because task fields are operator-supplied strings
-      that round-trip through a spreadsheet.
+    - TypeScript checking and a Vite production build are available. Scripts in
+      `scripts/diagnostics/` are hand-run diagnostics, not an automated test suite.
+    - Render user-controlled text as React text, never as injected HTML. Only
+      validated HTTPS links are rendered as external links.
 
   Domain notes:
-    - "Task" means one event/project. Its id is `TASK-<epoch-millis>`.
+    - The legacy `POST /api/create-task` endpoint records one event or project
+      under the task schema. Its id is `TASK-<epoch-millis>`.
+    - Creating and managing volunteer work items associated with an event is a
+      separate workflow and is not implemented in this portal yet.
     - Google API failures are expected in normal operation (storage quota,
       revoked sharing). Persisting the task to the Sheet is the only
       must-succeed step; Drive and Telegram are best-effort side effects.

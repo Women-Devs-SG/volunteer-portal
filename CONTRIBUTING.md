@@ -14,7 +14,6 @@ with a demo mode instead:
 
 ```bash
 npm install
-npm install -g netlify-cli    # once
 cp .env.example .env          # DEMO_MODE=1 is already set
 npm run dev                   # http://localhost:8888
 ```
@@ -81,9 +80,9 @@ node --check netlify/functions/create-task.mjs    # and any file you touched
 npm audit --omit=dev
 ```
 
-There is no test framework. `debug-google.mjs` and the `test-*.mjs` scripts at the
-root are hand-run diagnostics that need real credentials, not a suite — don't expect
-them to run in demo mode.
+There is no test framework. `scripts/diagnostics/debug-google.mjs` and the
+`scripts/diagnostics/test-*.mjs` scripts are hand-run diagnostics, not a suite.
+The Google diagnostics need real credentials; don't run them in demo mode.
 
 Conventions the code follows: ESM `import` only, two-space indent, single quotes,
 semicolons. Comments explain *why*, not *what*, and are sparse. Match the file you
