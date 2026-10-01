@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { clearPassword, createTask, getPassword, getTasks, setPassword } from './api';
-import type { Task, TaskInput } from './types';
+import TaskCard from './components/TaskCard';
+import TaskCreatePage from './pages/TaskCreatePage';
+import type { FormStatus, Task, TaskInput } from './types';
 
 type View = 'checking' | 'locked' | 'portal';
-type Status = { kind: 'success' | 'error'; message: string } | null;
 type LoadTasksResult =
   | { kind: 'success' }
   | { kind: 'unauthorized'; message: string }
@@ -20,13 +22,23 @@ const emptyInput: TaskInput = {
 };
 
 export default function App() {
+  return (
+    <BrowserRouter>
+      <PortalApp />
+    </BrowserRouter>
+  );
+}
+
+function PortalApp() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [view, setView] = useState<View>('checking');
   const [password, setPasswordInput] = useState('');
   const [gateError, setGateError] = useState('');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [listMessage, setListMessage] = useState('Loading tasks…');
   const [input, setInput] = useState<TaskInput>(emptyInput);
-  const [status, setStatus] = useState<Status>(null);
+  const [status, setStatus] = useState<FormStatus>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const lock = useCallback((message: string) => {
@@ -71,18 +83,27 @@ export default function App() {
   useEffect(() => {
     if (!getPassword()) {
       setView('locked');
+      if (location.pathname !== '/unlock') {
+        navigate('/unlock', { replace: true });
+      }
       return;
     }
+
     void loadTasks(getPassword()).then((result) => {
       if (result.kind === 'success') {
         setView('portal');
+        if (location.pathname === '/unlock') {
+          navigate('/', { replace: true });
+        }
       } else if (result.kind === 'unauthorized') {
         lock(result.message);
+        navigate('/unlock', { replace: true });
       } else {
         showGateError(result.message);
+        navigate('/unlock', { replace: true });
       }
     });
-  }, [loadTasks, lock, showGateError]);
+  }, [loadTasks, lock, location.pathname, navigate, showGateError]);
 
   async function handleUnlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,6 +112,7 @@ export default function App() {
     if (result.kind === 'success') {
       setPassword(password);
       setView('portal');
+      navigate('/', { replace: true });
     } else if (result.kind === 'unauthorized') {
       lock(result.message);
     } else {
@@ -110,16 +132,20 @@ export default function App() {
         eventLocation: input.eventLocation.trim(),
         eventOneLiner: input.eventOneLiner.trim(),
       });
+
       if (response.status === 401) {
         lock('Session expired. Enter the portal password again.');
+        navigate('/unlock', { replace: true });
         return;
       }
+
       if (response.ok && data?.status === 'success') {
-        setStatus({ kind: 'success', message: `✅ ${data.message ?? 'Task created.'}` });
+        setStatus({ kind: 'success', message: `✅ ${data.message ?? 'Event created.'}` });
         setInput(emptyInput);
         const refreshResult = await loadTasks();
         if (refreshResult.kind === 'unauthorized') {
           lock('Session expired. Enter the portal password again.');
+          navigate('/unlock', { replace: true });
         }
       } else {
         setStatus({ kind: 'error', message: `❌ ${data?.message ?? 'Failed to execute automation.'}` });
@@ -131,98 +157,101 @@ export default function App() {
     }
   }
 
-  if (view !== 'portal') {
-    return (
-      <main className="container gate-container">
-        <section className="card">
-          <h1>🔒 WDS Operations Portal</h1>
-          {view === 'checking' ? <p>Checking your session…</p> : (
-            <form onSubmit={handleUnlock}>
-              <label htmlFor="portalPassword">Portal Password</label>
-              <input
-                autoFocus
-                autoComplete="current-password"
-                id="portalPassword"
-                onChange={(event) => setPasswordInput(event.target.value)}
-                required
-                type="password"
-                value={password}
-              />
-              <button type="submit">Unlock</button>
-              <p aria-live="polite" className="gate-error">{gateError}</p>
-            </form>
-          )}
-        </section>
-      </main>
-    );
-  }
-
   const update = (field: keyof TaskInput, value: string) => setInput((current) => ({ ...current, [field]: value }));
 
   return (
-    <main className="container">
-      <section className="card hero-card">
-        <p className="eyebrow">Women Devs SG · Operations</p>
-        <h1>Turn an event idea into an organised project.</h1>
-        <p className="intro">Create the task once, then let the portal prepare its workspace and notify the team.</p>
-      </section>
+    <Routes>
+      <Route
+        path="/unlock"
+        element={(
+          <main className="mx-auto w-[min(100%-2rem,480px)] pt-[14vh] pb-[72px] max-[600px]:pt-[22px]">
+            <section className="mb-5 rounded-[18px] border border-[#304537]/[.12] bg-white/[.94] p-7 shadow-[0_18px_50px_rgba(31,50,38,.07)] max-[600px]:rounded-[14px] max-[600px]:p-[22px]">
+              <h1 className="mb-4 text-[1.7rem] leading-tight font-bold sm:text-[2rem]">WDS Operations Portal</h1>
+              <p className="mb-5 text-sm leading-relaxed text-[#5c6961]"><strong>Local demo mode:</strong> enter any password to continue. It uses fictional data and does not call Google Sheets, Drive, or Telegram.</p>
+              <form onSubmit={handleUnlock}>
+                <label className="mb-[7px] block text-[.84rem] font-bold" htmlFor="portalPassword">Portal Password</label>
+                <input
+                  className="w-full rounded-[9px] border border-[#ced8d1] bg-[#fbfcfa] px-[13px] py-[11px] text-[#17201b] outline-none transition focus:border-[#517d3d] focus:shadow-[0_0_0_3px_rgba(81,125,61,.13)]"
+                  autoFocus
+                  autoComplete="current-password"
+                  id="portalPassword"
+                  onChange={(event) => setPasswordInput(event.target.value)}
+                  required
+                  type="password"
+                  value={password}
+                />
+                <button className="mt-[22px] w-full rounded-[9px] bg-[#295b43] px-[18px] py-[13px] font-bold text-white transition hover:-translate-y-px hover:bg-[#183d2e] disabled:cursor-wait disabled:bg-[#94a49a]" type="submit">Unlock</button>
+                <p aria-live="polite" className="mt-3 min-h-[1.2em] text-sm text-[#a43b32]">{gateError}</p>
+              </form>
+            </section>
+          </main>
+        )}
+      />
 
-      <section className="card">
-        <div className="section-heading">
-          <div><p className="step">01</p><h2>Create a task</h2></div>
-          <span className="automation-note">Drive + Telegram automation</span>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="form-grid">
-            <div className="form-group full-width">
-              <label htmlFor="taskName">Task / Project Name <span>*</span></label>
-              <input id="taskName" maxLength={120} onChange={(e) => update('taskName', e.target.value)} placeholder="e.g. MedCamp 2026 Marketing" required value={input.taskName} />
-            </div>
-            <div className="form-group">
-              <label htmlFor="eventDate">Event Date</label>
-              <input id="eventDate" onChange={(e) => update('eventDate', e.target.value)} type="date" value={input.eventDate} />
-            </div>
-            <div className="form-group">
-              <label htmlFor="eventLocation">Event Location</label>
-              <input id="eventLocation" maxLength={120} onChange={(e) => update('eventLocation', e.target.value)} placeholder="e.g. Singapore" value={input.eventLocation} />
-            </div>
-            <div className="form-group full-width">
-              <label htmlFor="eventOneLiner">One-line Event Description</label>
-              <input id="eventOneLiner" maxLength={280} onChange={(e) => update('eventOneLiner', e.target.value)} placeholder="e.g. A community-led volunteering meetup" value={input.eventOneLiner} />
-            </div>
-            <div className="form-group full-width">
-              <label htmlFor="formUrl">Google Form Link <small>Optional</small></label>
-              <input id="formUrl" maxLength={500} onChange={(e) => update('formUrl', e.target.value)} placeholder="https://forms.google.com/…" type="url" value={input.formUrl} />
-            </div>
-          </div>
-          <button disabled={submitting} type="submit">{submitting ? 'Creating Drive Folder & Telegram Alert…' : 'Create Task & Run Automations →'}</button>
-          <p aria-live="polite" className={status ? `status-msg ${status.kind}` : 'status-msg'}>{status?.message}</p>
-        </form>
-      </section>
+      <Route
+        path="/"
+        element={
+          view === 'portal' ? (
+            <main className="mx-auto w-[min(100%-2rem,760px)] py-12 pb-[72px] max-[600px]:pt-[22px]">
+              <section className="relative mb-5 overflow-hidden rounded-[18px] bg-[#183d2e] p-[38px] text-[#f7fbf5] max-[600px]:rounded-[14px] max-[600px]:p-[22px]">
+                <span aria-hidden="true" className="absolute -top-[105px] -right-[105px] size-[340px] rounded-full border-[55px] border-[#d9ee76] opacity-90 max-[600px]:opacity-35" />
+                <p className="relative z-10 mb-[10px] text-[.76rem] font-bold tracking-[.13em] text-[#d9ee76] uppercase">Women Devs SG · Operations</p>
+                <h1 className="relative z-10 max-w-[560px] text-[1.7rem] leading-[1.1] font-bold sm:text-[2.65rem]">Turn an event idea into an organised project.</h1>
+                <p className="relative z-10 mt-[14px] max-w-[520px] leading-relaxed text-[#c8d8cf]">Create an event once, then let the portal prepare its workspace and notify the team.</p>
+              </section>
 
-      <section className="card">
-        <div className="section-heading"><div><p className="step">02</p><h2>Active tasks</h2></div><span className="task-count">{tasks.length} total</span></div>
-        {listMessage && <p className="empty-state">{listMessage}</p>}
-        <div className="task-list">
-          {tasks.map((task) => <TaskCard key={task.taskId || `${task.taskName}-${task.createdAt}`} task={task} />)}
-        </div>
-      </section>
-    </main>
-  );
-}
+              <section className="mb-5 rounded-[18px] border border-[#304537]/[.12] bg-white/[.94] p-7 shadow-[0_18px_50px_rgba(31,50,38,.07)] max-[600px]:rounded-[14px] max-[600px]:p-[22px]">
+                <div className="mb-6 flex items-center justify-between gap-4 max-[480px]:items-start">
+                  <div><p className="mb-[3px] text-[.76rem] font-bold tracking-[.13em] text-[#6c8f31] uppercase">01</p><h2 className="text-[1.35rem] font-bold">Event setup</h2></div>
+                  <button className="mt-0 w-auto shrink-0 rounded-[9px] bg-[#295b43] px-4 py-3 font-bold text-white transition hover:bg-[#183d2e]" onClick={() => navigate('/create-task')} type="button">Create an event</button>
+                </div>
+                <p className="text-sm leading-relaxed text-[#5c6961]">Demo mode is available locally for testing without real integrations.</p>
+              </section>
 
-function TaskCard({ task }: { task: Task }) {
-  const driveUrl = /^https:\/\//i.test(task.driveUrl) ? task.driveUrl : null;
-  return (
-    <article className="task-card">
-      <div className="task-card-header"><span className="status-badge">{task.status || 'Pending'}</span><span className="task-id">{task.taskId}</span></div>
-      <h3>{task.taskName}</h3>
-      <div className="task-meta">
-        {task.eventDate && <p><strong>Date</strong>{task.eventDate}</p>}
-        {task.eventLocation && <p><strong>Location</strong>{task.eventLocation}</p>}
-        {task.eventOneLiner && <p className="full-width"><strong>About</strong>{task.eventOneLiner}</p>}
-      </div>
-      {driveUrl && <a className="drive-link" href={driveUrl} rel="noopener noreferrer" target="_blank">Open Drive Folder ↗</a>}
-    </article>
+              <section className="mb-5 rounded-[18px] border border-[#304537]/[.12] bg-white/[.94] p-7 shadow-[0_18px_50px_rgba(31,50,38,.07)] max-[600px]:rounded-[14px] max-[600px]:p-[22px]">
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <div><p className="mb-[3px] text-[.76rem] font-bold tracking-[.13em] text-[#6c8f31] uppercase">02</p><h2 className="text-[1.35rem] font-bold">Events</h2></div>
+                  <span className="rounded-full bg-[#edf4e6] px-[10px] py-1.5 text-xs font-bold text-[#4d682d]">{tasks.length} total</span>
+                </div>
+                {listMessage && <p className="rounded-xl border border-dashed border-[#c8d4cc] p-7 text-center text-[#718078]">{listMessage}</p>}
+                <div className="grid gap-3">
+                  {tasks.map((task) => <TaskCard key={task.taskId || `${task.taskName}-${task.createdAt}`} task={task} />)}
+                </div>
+              </section>
+            </main>
+          ) : view === 'checking' ? (
+            <main className="mx-auto w-[min(100%-2rem,480px)] pt-[14vh] pb-[72px] max-[600px]:pt-[22px]">
+              <section className="rounded-[18px] border border-[#304537]/[.12] bg-white/[.94] p-7 shadow-[0_18px_50px_rgba(31,50,38,.07)] max-[600px]:rounded-[14px] max-[600px]:p-[22px]">
+                <h1 className="mb-4 text-[1.7rem] leading-tight font-bold sm:text-[2rem]">WDS Operations Portal</h1>
+                <p className="text-sm text-[#5c6961]">Checking your session…</p>
+              </section>
+            </main>
+          ) : (
+            <Navigate to="/unlock" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/create-task"
+        element={
+          view === 'portal' ? (
+            <TaskCreatePage
+              demoModeNote="Demo mode is for local-only testing and does not call Google Sheets, Drive, or Telegram."
+              input={input}
+              onBack={() => navigate('/')}
+              onChange={update}
+              onSubmit={handleSubmit}
+              status={status}
+              submitting={submitting}
+            />
+          ) : (
+            <Navigate to="/unlock" replace />
+          )
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

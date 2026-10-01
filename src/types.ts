@@ -23,6 +23,8 @@ export interface ApiResponse {
   message?: string;
 }
 
+export type FormStatus = { kind: 'success' | 'error'; message: string } | null;
+
 export interface TasksResponse extends ApiResponse {
   tasks?: Task[];
 }

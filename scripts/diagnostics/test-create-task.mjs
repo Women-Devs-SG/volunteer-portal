@@ -1,8 +1,8 @@
 // Hand-run diagnostic: posts one task through the local netlify dev server.
-// Creates a real Drive folder, Sheet row, and Telegram message.
+// In real mode this creates live Drive, Sheet, and Telegram records.
 //
-//   npm run dev            # in another terminal
-//   node test-create-task.mjs
+//   npm run dev                                  # in another terminal
+//   node scripts/diagnostics/test-create-task.mjs
 
 import dotenv from 'dotenv';
 

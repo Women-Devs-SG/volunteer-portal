@@ -25,9 +25,14 @@
   to = "/.netlify/functions/tasks"
   status = 200
 
-# Production page security headers live in static/_headers. Vite copies that
-# file into dist for builds but does not expose it through Netlify Dev, where
-# its CSP would block the React Fast Refresh preamble.
+[[redirects]]
+   from = "/*"
+   to = "/index.html"
+   status = 200
+
+# Production page security headers live in static/_headers and are copied into
+# dist during builds. Netlify Dev also applies them, so vite.config.ts omits the
+# inline React Fast Refresh preamble while serving locally.
 
 # Task data is private; never let a proxy or the browser cache an API response.
 [[headers]]

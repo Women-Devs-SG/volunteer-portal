@@ -1,44 +1,26 @@
-:root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17201b; background: #eef2eb; font-synthesis: none; }
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(circle at top left, #dce9db 0, transparent 35rem), #eef2eb; }
-button, input { font: inherit; }
-.container { width: min(100% - 32px, 760px); margin: 0 auto; padding: 48px 0 72px; }
-.gate-container { max-width: 480px; padding-top: 14vh; }
-.card { margin-bottom: 20px; padding: 28px; background: rgba(255,255,255,.94); border: 1px solid rgba(48,69,55,.12); border-radius: 18px; box-shadow: 0 18px 50px rgba(31,50,38,.07); }
-.hero-card { padding: 38px; color: #f7fbf5; background: #183d2e; overflow: hidden; position: relative; }
-.hero-card::after { content: ''; position: absolute; width: 230px; height: 230px; border: 55px solid #d9ee76; border-radius: 50%; right: -105px; top: -105px; opacity: .9; }
-.eyebrow, .step { margin: 0 0 10px; color: #6c8f31; font-weight: 700; font-size: .76rem; letter-spacing: .13em; text-transform: uppercase; }
-.hero-card .eyebrow { color: #d9ee76; }
-h1, h2, h3 { font-family: inherit; }
-h1 { margin: 0; max-width: 560px; font-size: clamp(1.7rem, 5vw, 2.65rem); line-height: 1.1; letter-spacing: -.04em; }
-.hero-card h1 { position: relative; z-index: 1; }
-.intro { position: relative; z-index: 1; max-width: 520px; margin: 14px 0 0; color: #c8d8cf; line-height: 1.6; }
-h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.025em; }
-.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-.step { margin-bottom: 3px; }
-.automation-note, .task-count { padding: 6px 10px; border-radius: 99px; background: #edf4e6; color: #4d682d; font-size: .75rem; font-weight: 700; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
-.form-group { margin-bottom: 2px; }
-.full-width { grid-column: 1 / -1; }
-label { display: block; margin-bottom: 7px; font-size: .84rem; font-weight: 700; }
-label span { color: #b34a3e; } label small { color: #809087; font-weight: 500; }
-input { width: 100%; padding: 11px 13px; border: 1px solid #ced8d1; border-radius: 9px; background: #fbfcfa; color: #17201b; outline: none; transition: border-color .2s, box-shadow .2s; }
-input:focus { border-color: #517d3d; box-shadow: 0 0 0 3px rgba(81,125,61,.13); }
-button { width: 100%; margin-top: 22px; padding: 13px 18px; border: 0; border-radius: 9px; color: #fff; background: #295b43; font-weight: 700; cursor: pointer; transition: transform .15s, background .2s; }
-button:hover { background: #183d2e; transform: translateY(-1px); }
-button:disabled { background: #94a49a; cursor: wait; transform: none; }
-.gate-error, .status-msg { min-height: 1.2em; margin: 12px 0 0; font-size: .88rem; }
-.gate-error, .status-msg.error { color: #a43b32; } .status-msg.success { color: #28723f; }
-.empty-state { margin: 0; padding: 28px; border: 1px dashed #c8d4cc; border-radius: 12px; color: #718078; text-align: center; }
-.task-list { display: grid; gap: 12px; }
-.task-card { padding: 18px; border: 1px solid #dce3de; border-radius: 12px; background: #fbfcfa; }
-.task-card-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
-.status-badge { padding: 4px 9px; border-radius: 99px; background: #e6f2d7; color: #476b26; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
-.task-id { color: #89958e; font-size: .72rem; }
-.task-card h3 { margin: 12px 0; font-size: 1.08rem; }
-.task-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
-.task-meta p { margin: 0; color: #5c6961; font-size: .84rem; }
-.task-meta strong { display: block; margin-bottom: 2px; color: #243129; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
-.drive-link { display: inline-block; margin-top: 14px; color: #276243; font-size: .83rem; font-weight: 700; text-decoration: none; }
-.drive-link:hover { text-decoration: underline; }
-@media (max-width: 600px) { .container { padding-top: 22px; } .card, .hero-card { padding: 22px; border-radius: 14px; } .form-grid, .task-meta { grid-template-columns: 1fr; } .full-width { grid-column: auto; } .automation-note { display: none; } .hero-card::after { opacity: .35; } }
+@import "tailwindcss";
+
+@theme {
+	--font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@layer base {
+	:root {
+		font-synthesis: none;
+		color: #17201b;
+		background: #eef2eb;
+	}
+
+	body {
+		min-width: 320px;
+		min-height: 100vh;
+		margin: 0;
+		font-family: var(--font-sans);
+		background: radial-gradient(circle at top left, #dce9db 0, transparent 35rem), #eef2eb;
+	}
+
+	button,
+	input {
+		font: inherit;
+	}
+}

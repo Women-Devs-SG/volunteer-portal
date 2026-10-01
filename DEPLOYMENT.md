@@ -16,8 +16,8 @@ Both require the shared portal password in an `X-Portal-Password` header.
 node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
 ```
 
-Must be at least 12 characters. The API returns 503 to every request if it is
-unset or shorter, so the portal can never accidentally run unprotected.
+The API returns 503 to every request if it is unset or invalid, so the portal
+can never accidentally run unprotected.
 
 ## 2. Set environment variables in Netlify
 
@@ -65,7 +65,6 @@ automatically.
 
 ```powershell
 npm install
-npm install -g netlify-cli   # once
 cp .env.example .env         # then fill it in
 npm run dev                  # http://localhost:8888
 ```
