@@ -80,9 +80,24 @@ node --check netlify/functions/create-task.mjs    # and any file you touched
 npm audit --omit=dev
 ```
 
-There is no test framework. `scripts/diagnostics/debug-google.mjs` and the
-`scripts/diagnostics/test-*.mjs` scripts are hand-run diagnostics, not a suite.
-The Google diagnostics need real credentials; don't run them in demo mode.
+Run the synthetic regression suite before submitting frontend changes:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npx playwright install chromium   # once, if the browser is not installed
+npm run test:e2e
+```
+
+The browser suite builds the production frontend, applies its security headers,
+and runs the real Netlify handlers through a local test server. It forces demo
+mode, removes integration credentials, blocks external browser requests and uses
+an isolated temporary demo store. It never loads `.env` or the live portal.
+
+`scripts/diagnostics/debug-google.mjs` and `scripts/diagnostics/test-*.mjs` remain
+hand-run integration diagnostics. The Google diagnostics need real credentials;
+do not use them for this regression suite.
 
 Conventions the code follows: ESM `import` only, two-space indent, single quotes,
 semicolons. Comments explain *why*, not *what*, and are sparse. Match the file you

@@ -8,6 +8,7 @@
 !package.json
 !package-lock.json
 !tsconfig.json
+!tsconfig.tests.json
 !netlify/**/*.json
 # Demo fixtures are deliberately public — they hold only fictional events.
 # Scoped to the *.demo.json suffix so a stray key file dropped in fixtures/
@@ -25,6 +26,8 @@ deno.lock
 
 # Vite build output
 dist/
+test-results/
+playwright-report/
 
 # OS metadata
 .DS_Store

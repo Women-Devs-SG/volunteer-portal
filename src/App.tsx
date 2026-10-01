@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { clearPassword, createTask, getPassword, getTasks, setPassword } from './api';
+import { clearPassword, getPassword, getTasks, setPassword } from './api';
 import TaskCard from './components/TaskCard';
+import { useEventCreation } from './useEventCreation';
 import TaskCreatePage from './pages/TaskCreatePage';
-import type { FormStatus, Task, TaskInput } from './types';
+import type { Task, TaskInput } from './types';
 
 type View = 'checking' | 'locked' | 'portal';
 type LoadTasksResult =
@@ -38,8 +39,6 @@ function PortalApp() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [listMessage, setListMessage] = useState('Loading tasks…');
   const [input, setInput] = useState<TaskInput>(emptyInput);
-  const [status, setStatus] = useState<FormStatus>(null);
-  const [submitting, setSubmitting] = useState(false);
 
   const lock = useCallback((message: string) => {
     clearPassword();
@@ -120,42 +119,20 @@ function PortalApp() {
     }
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitting(true);
-    setStatus(null);
-    try {
-      const { response, data } = await createTask({
-        ...input,
-        taskName: input.taskName.trim(),
-        formUrl: input.formUrl.trim(),
-        eventLocation: input.eventLocation.trim(),
-        eventOneLiner: input.eventOneLiner.trim(),
-      });
+  function handleUnauthorized(message: string) {
+    lock(message);
+    navigate('/unlock', { replace: true });
+  }
 
-      if (response.status === 401) {
-        lock('Session expired. Enter the portal password again.');
-        navigate('/unlock', { replace: true });
-        return;
-      }
-
-      if (response.ok && data?.status === 'success') {
-        setStatus({ kind: 'success', message: `✅ ${data.message ?? 'Event created.'}` });
-        setInput(emptyInput);
-        const refreshResult = await loadTasks();
-        if (refreshResult.kind === 'unauthorized') {
-          lock('Session expired. Enter the portal password again.');
-          navigate('/unlock', { replace: true });
-        }
-      } else {
-        setStatus({ kind: 'error', message: `❌ ${data?.message ?? 'Failed to execute automation.'}` });
-      }
-    } catch {
-      setStatus({ kind: 'error', message: '❌ Failed to connect to the server.' });
-    } finally {
-      setSubmitting(false);
+  async function handleCreated() {
+    setInput(emptyInput);
+    const result = await loadTasks();
+    if (result.kind === 'unauthorized') {
+      handleUnauthorized('Session expired. Enter the portal password again.');
     }
   }
+
+  const { submit, status, submitting } = useEventCreation(handleCreated, handleUnauthorized);
 
   const update = (field: keyof TaskInput, value: string) => setInput((current) => ({ ...current, [field]: value }));
 
@@ -241,7 +218,7 @@ function PortalApp() {
               input={input}
               onBack={() => navigate('/')}
               onChange={update}
-              onSubmit={handleSubmit}
+              onSubmit={submit}
               status={status}
               submitting={submitting}
             />

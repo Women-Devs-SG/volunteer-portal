@@ -10,23 +10,38 @@
     "dev": "netlify dev",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "audit": "npm audit --omit=dev"
+    "audit": "npm audit --omit=dev",
+    "lint": "eslint src lib netlify tests",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.tests.json",
+    "test": "vitest run",
+    "test:e2e": "npm run build && playwright test"
   },
   "dependencies": {
     "googleapis": "^174.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^26.6.3",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
     "dotenv": "^16.4.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^30.1.1",
     "netlify-cli": "^23.13.5",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.18.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.2",
-    "vite": "^7.1.5"
+    "typescript-eslint": "^8.71.0",
+    "vite": "^7.1.5",
+    "vitest": "^3.2.7"
   }
 }
