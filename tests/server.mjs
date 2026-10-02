@@ -15,9 +15,9 @@ for (const key of Object.keys(process.env)) {
   if (/^(GOOGLE_|TELEGRAM_|PORTAL_PASSWORD|WDS_INTRO_DOC_ID)/.test(key)) delete process.env[key];
 }
 globalThis.fetch = async () => { throw new Error('External fetch forbidden in demo verification.'); };
-const { default: createTask } = await import('../../netlify/functions/create-task.mjs');
-const { default: tasks } = await import('../../netlify/functions/tasks.mjs');
-const { demoStorePath } = await import('../../lib/demo.mjs');
+const { default: createTask } = await import('../netlify/functions/create-task.mjs');
+const { default: tasks } = await import('../netlify/functions/tasks.mjs');
+const { demoStorePath } = await import('../lib/demo.mjs');
 if (!resolve(demoStorePath()).startsWith(scratch + sep)) throw new Error('Demo store is not isolated.');
 
 const root = resolve('dist');

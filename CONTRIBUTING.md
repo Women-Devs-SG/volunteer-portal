@@ -85,12 +85,12 @@ Run the synthetic regression suite before submitting frontend changes:
 ```bash
 npm run lint
 npm run typecheck
-npm test
 npx playwright install chromium   # once, if the browser is not installed
-npm run test:e2e
+npm test
 ```
 
-The browser suite builds the production frontend, applies its security headers,
+One Playwright suite covers validation rules, API contracts and browser flows.
+`npm test` builds the production frontend, applies its security headers,
 and runs the real Netlify handlers through a local test server. It forces demo
 mode, removes integration credentials, blocks external browser requests and uses
 an isolated temporary demo store. It never loads `.env` or the live portal.

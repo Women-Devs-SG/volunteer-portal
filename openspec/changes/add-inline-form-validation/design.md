@@ -36,12 +36,16 @@ Successful creation clears the draft and refreshes the dashboard.
 
 ## Verification
 
-Unit tests exercise boundary lengths, normalized values, optional links and dates,
-and backend parity. Component tests exercise focus, descriptions, preserved values,
-correction, API failures, malformed responses, retry, and duplicate prevention.
-Browser tests use a local demo API and synthetic fixtures only, including direct
-server rejection and creation followed by dashboard refresh. External requests are
-blocked during browser verification.
+One Playwright suite exercises validation rules, API contracts and browser flows
+through `npm test`. Direct validation cases cover boundaries, normalization,
+optional links/dates and backend parity. Browser cases cover focus, descriptions,
+preserved values, correction, API/malformed/network errors, retries, authentication
+and duplicate prevention across routes. Shared browser setup runs only for cases
+that need it; rule and API cases do not open a browser.
+
+The suite uses the production build, real local demo handlers and isolated
+synthetic data. External browser requests are blocked. A separate mocked DOM suite
+is unnecessary because these browser cases exercise the same behavior directly.
 
 ## Risks and Dependencies
 
