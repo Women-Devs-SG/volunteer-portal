@@ -25,7 +25,8 @@
 - [x] Explicitly exercise HTTP form/API compatibility and mark HTTPS-only pending approval.
 - [x] Verify last-submission banner guidance, retry action and successful recovery.
 - [x] Add GitHub Actions for lint, type-check, demo tests, OpenSpec and production audit.
-- [ ] Confirm the hosted workflow succeeds on the updated commit.
+- [x] Confirm the hosted Ubuntu workflow succeeds on implementation commit ffa16a9.
+- [ ] Confirm upstream PR checks run before marking ready (currently no checks reported).
 
 ## Verification (2026-10-02)
 
@@ -52,6 +53,12 @@ consolidated suite, found no actionable findings or meaningful coverage loss, an
 independently ran `npm test`: production build and all 39 cases passed.
 The follow-up review of explicit URL acceptance, retry guidance and CI found no
 actionable findings; Sol High independently reran 40 passing cases and 1 pending case.
+
+GitHub Actions on the fork passed lint, type-check, production build, all 40 active
+tests, strict OpenSpec (8 items) and production audit (0 vulnerabilities):
+https://github.com/aritejhg/volunteer-portal/actions/runs/36960669031
+The upstream PR still reports no checks. This account cannot inspect upstream
+Actions policies (403); maintainers must confirm upstream execution before ready.
 
 HTTPS-only acceptance remains deliberately unmet: both client and backend retain
 existing HTTP(S) acceptance. No new date rules. Draft PR/push authorized on
