@@ -64,7 +64,7 @@ test('keyboard validation, correction, native limits and successful demo creatio
   const url = page.getByLabel('Google Form Link');
   await location.fill('Synthetic room');
   await url.fill('not a URL');
-  await page.getByRole('button', { name: /Create event &/ }).focus();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).focus();
   await page.keyboard.press('Enter');
   await expect(name).toBeFocused();
   await expect(name).toHaveAttribute('aria-invalid', 'true');
@@ -82,7 +82,7 @@ test('keyboard validation, correction, native limits and successful demo creatio
   await expect(page.getByLabel('One-line Event Description')).toHaveAttribute('maxlength', '280');
   await expect(url).toHaveAttribute('maxlength', '500');
   await page.getByLabel('Event Date').fill('2000-01-01');
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   await expect(page.getByText(/saved to your local demo only/)).toBeVisible();
   await expect(name).toHaveValue('');
   expect(requests).toHaveLength(1);
@@ -102,7 +102,7 @@ test('HTTP rejection preserves values and server-field focus; network failure ca
   await page.route('**/api/create-task', (route) => route.fulfill({ status: 400, json: {
     status: 'error', message: 'eventLocation must be 120 characters or fewer.',
   } }));
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   const location = page.getByLabel('Event Location');
   await expect(location).toBeFocused();
   await expect(location).toHaveAttribute('aria-invalid', 'true');
@@ -111,22 +111,27 @@ test('HTTP rejection preserves values and server-field focus; network failure ca
   await location.fill('Synthetic corrected room');
   await expect(location).not.toHaveAttribute('aria-invalid');
   await expect(page.getByRole('alert')).toHaveText(/eventLocation must be 120/);
+  await expect(page.getByRole('alert')).toHaveText(/Last submission failed/);
+  await expect(page.getByRole('alert')).toHaveText(/retry event creation/);
+  await expect(page.getByRole('button', { name: 'Retry event creation', exact: true })).toBeEnabled();
   await page.route('**/api/create-task', (route) => route.fulfill({ status: 502, json: {
     status: 'error', message: '<b>Synthetic API failure</b>',
   } }));
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   await expect(page.getByRole('alert')).toHaveText(/<b>Synthetic API failure<\/b>/);
   await expect(page.getByRole('alert').locator('b')).toHaveCount(0);
   await expect(page.getByRole('alert')).not.toHaveText(/connection/);
   await name.fill('Synthetic corrected retry workshop');
   await expect(page.getByRole('alert')).toHaveText(/Synthetic API failure/);
   await page.route('**/api/create-task', (route) => route.abort('failed'));
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   await expect(page.getByRole('alert')).toHaveText(/connection/);
   await expect(name).toHaveValue('Synthetic corrected retry workshop');
   await page.unroute('**/api/create-task');
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   await expect(page.getByText(/saved to your local demo only/)).toBeVisible();
+  await expect(page.getByRole('alert')).toBeEmpty();
+  await expect(page.getByRole('button', { name: 'Retry event creation', exact: true })).toHaveCount(0);
 });
 
 test('backend rejects direct invalid requests even without client validation', async ({ request }) => {
@@ -146,8 +151,23 @@ test('backend rejects direct invalid requests even without client validation', a
 test('a Unicode URL within the raw limit succeeds without double normalization', async ({ eventPage: page }) => {
   await page.getByLabel('Event Name').fill('Synthetic Unicode workshop');
   await page.getByLabel('Google Form Link').fill('https://example.com/' + 'é'.repeat(100));
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   await expect(page.getByText(/saved to your local demo only/)).toBeVisible();
+});
+
+test('HTTP remains supported by the form and API pending the #2 HTTPS-only decision', async ({ eventPage: page }) => {
+  test.info().annotations.push({ type: 'acceptance gap', description: 'Existing backend parity; HTTPS-only awaits maintainer approval. See the pending contract below.' });
+  await page.getByLabel('Event Name').fill('Synthetic HTTP compatibility workshop');
+  await page.getByLabel('Google Form Link').fill('http://example.com/form');
+  const response = page.waitForResponse((response) => response.url().endsWith('/api/create-task'));
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
+  expect((await response).status()).toBe(200);
+  await expect(page.getByText(/saved to your local demo only/)).toBeVisible();
+});
+
+test.fixme('PENDING maintainer approval: #2 HTTPS-only rejects HTTP in frontend and backend', () => {
+  expect(validateField('formUrl', 'http://example.com/form')).toBeDefined();
+  expect(validateTaskInput({ ...valid, formUrl: 'http://example.com/form' }).ok).toBe(false);
 });
 
 test('incomplete native dates show inline guidance and correction retains focus', async ({ eventPage: page }) => {
@@ -161,7 +181,7 @@ test('incomplete native dates show inline guidance and correction retains focus'
     await date.press('ArrowRight');
   }
   expect(await date.evaluate((input: HTMLInputElement) => input.validity.badInput)).toBe(true);
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   await expect(date).toHaveAttribute('aria-invalid', 'true');
   await expect(date).toHaveAccessibleDescription(/complete, real date/);
   await expect(date).toBeFocused();
@@ -176,7 +196,7 @@ test('authentication expiry preserves the draft through unlock and retry', async
   await page.route('**/api/create-task', (route) => route.fulfill({ status: 401, json: {
     status: 'error', message: 'Synthetic session expired. Unlock to retry.',
   } }));
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   await expect(page).toHaveURL('/unlock');
   await expect(page.getByText('Synthetic session expired. Unlock to retry.')).toBeVisible();
   expect(await page.evaluate(() => sessionStorage.getItem('wds-portal-password'))).toBeNull();
@@ -186,7 +206,7 @@ test('authentication expiry preserves the draft through unlock and retry', async
   await expect(page.getByLabel('Event Name')).toHaveValue('Synthetic retained draft');
   await expect(page.getByLabel('Event Location')).toHaveValue('Synthetic retained room');
   await page.unroute('**/api/create-task');
-  await page.getByRole('button', { name: /Create event &/ }).click();
+  await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
   await expect(page.getByText(/saved to your local demo only/)).toBeVisible();
 });
 
@@ -201,7 +221,7 @@ for (const field of Object.keys(LIMITS) as (keyof typeof LIMITS)[]) {
     // Exercise application validation when autofill/scripts bypass native caps.
     await control.evaluate((input) => input.removeAttribute('maxlength'));
     await control.fill('x'.repeat(limit + 1));
-    await page.getByRole('button', { name: /Create event &/ }).click();
+    await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
     await expect(control).toBeFocused();
     await expect(control).toHaveAttribute('aria-invalid', 'true');
     await expect(control).toHaveAccessibleDescription(new RegExp(`${limit} characters or fewer`));
@@ -215,14 +235,14 @@ for (const [status, body] of [
   test(`HTTP ${status} malformed response gets server guidance and allows retry`, async ({ eventPage: page }) => {
     await page.getByLabel('Event Name').fill('Synthetic malformed-response workshop');
     await page.route('**/api/create-task', (route) => route.fulfill({ status, contentType: 'application/json', body }));
-    await page.getByRole('button', { name: /Create event &/ }).click();
+    await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
     const banner = page.getByRole('alert');
     await expect(banner).toHaveText(/server/i);
     await expect(banner).not.toHaveText(/connection|reach/i);
     await expect(page.getByLabel('Event Name')).toHaveValue('Synthetic malformed-response workshop');
-    await expect(page.getByRole('button', { name: /Create event &/ })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /Create event &|Retry event creation/ })).toBeEnabled();
     await page.unroute('**/api/create-task');
-    await page.getByRole('button', { name: /Create event &/ }).click();
+    await page.getByRole('button', { name: /Create event &|Retry event creation/ }).click();
     await expect(page.getByText(/saved to your local demo only/)).toBeVisible();
   });
 }
@@ -256,6 +276,6 @@ test('pending guard prevents synchronous and route-remount duplicates', async ({
   }
   await expect(page.getByText(/saved to your local demo only/)).toBeVisible();
   await expect(page.getByLabel('Event Name')).toHaveValue('');
-  await expect(page.getByRole('button', { name: /Create event &/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /Create event &|Retry event creation/ })).toBeEnabled();
   expect(requests).toBe(1);
 });

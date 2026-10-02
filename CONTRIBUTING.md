@@ -95,6 +95,14 @@ and runs the real Netlify handlers through a local test server. It forces demo
 mode, removes integration credentials, blocks external browser requests and uses
 an isolated temporary demo store. It never loads `.env` or the live portal.
 
+`.github/workflows/validation.yml` runs these commands on pull requests and pushes
+with Node 22 and Chromium, plus strict OpenSpec validation and the production
+dependency audit. Check hosted results before marking a PR ready.
+
+The HTTPS-only contract test is explicitly pending maintainer approval for issue
+#2. Current HTTP(S) compatibility is tested against the form and API; activating
+that contract requires a coordinated rule change and updating compatibility tests.
+
 `scripts/diagnostics/debug-google.mjs` and `scripts/diagnostics/test-*.mjs` remain
 hand-run integration diagnostics. The Google diagnostics need real credentials;
 do not use them for this regression suite.

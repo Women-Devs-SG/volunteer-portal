@@ -20,8 +20,13 @@ or deploy.
   preserve values on failure, and clear errors as values become valid.
 - Distinguish HTTP failures from connectivity failures, retain server messages,
   and guard against duplicate submissions while a request is pending.
+- Identify persistent banners as the last failed submission and offer a clear
+  retry label independently of corrected field errors.
 - Add synthetic validation, API, and browser regression tests plus lint and
   explicit type-check scripts.
+- Run these checks in GitHub Actions on pull requests and pushes, with demo data.
+- Make existing HTTP compatibility and the pending HTTPS-only decision visible
+  as an active browser regression and an explicitly pending contract test.
 
 ## Capabilities
 

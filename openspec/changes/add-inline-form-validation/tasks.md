@@ -22,6 +22,10 @@
   in a real browser against local demo functions; block external requests.
 - [x] Inspect final diff and record remaining acceptance gaps.
 - [x] Re-review the consolidated suite with Sol High; fix findings until none remain.
+- [x] Explicitly exercise HTTP form/API compatibility and mark HTTPS-only pending approval.
+- [x] Verify last-submission banner guidance, retry action and successful recovery.
+- [x] Add GitHub Actions for lint, type-check, demo tests, OpenSpec and production audit.
+- [ ] Confirm the hosted workflow succeeds on the updated commit.
 
 ## Verification (2026-10-02)
 
@@ -31,8 +35,10 @@ setup and one TypeScript configuration. Removed Vitest, Testing Library and jsdo
 browser flows. Coverage includes boundaries, keyboard focus, native incomplete
 dates, API/network retry, authentication/draft restoration, Unicode URLs,
 duplicate requests across routes and backend rejection without frontend checks.
-All 39 consolidated cases pass (24 direct validation cases, 1 API contract case
-and 14 browser flows). Duplicate mocked-DOM coverage is replaced by browser cases.
+All 40 active cases pass (24 direct validation cases, 1 API contract case
+and 15 browser flows). One HTTPS-only contract is explicitly pending/skipped until
+maintainers approve a coordinated frontend/backend rule change. Duplicate
+mocked-DOM coverage is replaced by browser cases.
 
 Lint, frontend/test type-check and Vite production build pass. Strict OpenSpec
 validation: 8 passed. Production dependency audit: 0 vulnerabilities. Tests use
@@ -44,6 +50,8 @@ actionable findings or new regressions and independently reran all 42 unit/compo
 tests and 6 browser tests successfully before consolidation. Sol High reviewed the
 consolidated suite, found no actionable findings or meaningful coverage loss, and
 independently ran `npm test`: production build and all 39 cases passed.
+The follow-up review of explicit URL acceptance, retry guidance and CI found no
+actionable findings; Sol High independently reran 40 passing cases and 1 pending case.
 
 HTTPS-only acceptance remains deliberately unmet: both client and backend retain
 existing HTTP(S) acceptance. No new date rules. Draft PR/push authorized on

@@ -18,6 +18,13 @@ with visible invalid styling, aria-invalid and aria-describedby associations.
 - **THEN** no request is sent and associated guidance describes an accepted URL
 - **AND** an empty link remains valid
 
+#### Scenario: Existing HTTP compatibility pending HTTPS-only approval
+
+- **WHEN** a form URL is a valid HTTP or HTTPS URL within existing backend limits
+- **THEN** frontend validation and the API accept it consistently
+- **AND** HTTPS-only rejection remains an explicitly pending test until maintainers
+  approve a coordinated backend rule change for issue #2
+
 #### Scenario: Invalid date or excessive length
 
 - **WHEN** an entered date is incomplete, not YYYY-MM-DD or not a real date, or a
@@ -48,6 +55,15 @@ region and preserve the draft. It SHALL distinguish server and connection failur
 - **WHEN** the creation request cannot reach the API
 - **THEN** connection-specific guidance appears and the draft survives
 - **AND** the operator can retry after the request settles
+
+#### Scenario: Field corrected after an API rejection
+
+- **WHEN** the operator corrects a server-rejected field
+- **THEN** its inline error clears independently of the previous request outcome
+- **AND** the banner identifies the last failed submission and explains how to retry
+- **AND** the submit button offers retry while the error outcome remains
+- **AND** a valid retry clears the old banner when sent and replaces it with the
+  new outcome, while a locally invalid retry retains the last API outcome
 
 ### Requirement: Guarded Creation Submission
 

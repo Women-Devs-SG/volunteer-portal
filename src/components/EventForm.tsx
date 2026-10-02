@@ -88,7 +88,7 @@ export default function EventForm({ input, onChange, onSubmit, status, submittin
         </div>
       </fieldset>
       <button className="mt-[22px] w-full rounded-[9px] bg-[#295b43] px-[18px] py-[13px] font-bold text-white transition hover:-translate-y-px hover:bg-[#183d2e] disabled:cursor-wait disabled:bg-[#94a49a]" disabled={submitting} type="submit">
-        {submitting ? 'Creating event…' : 'Create event & run automations →'}
+        {submitting ? 'Creating event…' : status?.kind === 'error' ? 'Retry event creation' : 'Create event & run automations →'}
       </button>
       <p aria-live="polite" aria-atomic="true" className="mt-3 min-h-[1.2em] text-sm text-[#28723f]">{status?.kind === 'success' ? status.message : ''}</p>
     </form>

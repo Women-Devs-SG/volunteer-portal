@@ -29,6 +29,9 @@ Persistent error banners use an alert region and plain text. Invalid controls us
 aria-invalid, aria-describedby and visible border styling; field updates use polite
 live regions. A 400 with a recognized backend field message also marks and focuses
 that field. Unknown errors remain in the banner.
+After correction, the banner describes the last failed submission and the submit
+button offers Retry event creation. A valid retry clears the old outcome while
+saving, then displays the new result; client-invalid retries preserve it.
 
 HTTP responses with missing/malformed JSON are server errors with status-aware
 fallbacks, never connectivity errors. Only failed fetches use connection guidance.
@@ -46,6 +49,15 @@ that need it; rule and API cases do not open a browser.
 The suite uses the production build, real local demo handlers and isolated
 synthetic data. External browser requests are blocked. A separate mocked DOM suite
 is unnecessary because these browser cases exercise the same behavior directly.
+
+The GitHub Actions validation job installs Node 22 and Chromium, then runs lint,
+type-check, the unified build/test command, strict OpenSpec validation and the
+production dependency audit. Pull-request and push runs use read-only permissions
+and no integration secrets. Actual hosted results must be checked before readiness.
+
+An active browser test names the current HTTP compatibility decision. A fixme
+contract states the future frontend/backend HTTPS-only expectation and stays
+pending until maintainer approval; no approved HTTPS-only requirement is implied.
 
 ## Risks and Dependencies
 
