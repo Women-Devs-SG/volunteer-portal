@@ -25,6 +25,8 @@ deno.lock
 
 # Vite build output
 dist/
+test-results/
+playwright-report/
 
 # OS metadata
 .DS_Store
